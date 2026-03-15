@@ -31,6 +31,30 @@ If your cursor is already inside a callout, the picker acts as a "change callout
 
 The plugin reads enabled CSS snippets from your vault's Obsidian config and looks for `.callout[data-callout="..."]` definitions. That means custom callouts can show up in the picker automatically without requiring a separate plugin-specific registry.
 
+Here is a full example of a CSS snippet entry that this plugin can process:
+
+```css
+.callout[data-callout="indicated"],
+.callout[data-callout="recommended"] {
+  --callout-color: 230, 126, 34;
+  --callout-icon: lucide-stethoscope;
+  --callout-concept: drug-usage;
+  --callout-groups: drug disease;
+  --callout-group-drug: indicated;
+  --callout-group-disease: symptoms;
+}
+```
+
+With that snippet enabled in Obsidian:
+
+- `indicated` is treated as the primary callout id
+- `recommended` is treated as an alias for the same callout
+- the callout appears in the picker under the `drug` group as `Indicated`
+- the same underlying callout also appears under the `disease` group as `Symptoms`
+- the picker uses the CSS callout color and icon automatically
+
+You can define additional groups with more `--callout-group-<group-name>` properties. The alias list for each group is whitespace- or comma-separated, and the first alias becomes the displayed picker entry for that group.
+
 ## Settings
 
 The plugin includes settings for:
