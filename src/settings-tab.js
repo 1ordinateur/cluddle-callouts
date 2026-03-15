@@ -1,6 +1,11 @@
 const { PluginSettingTab, Setting } = require("obsidian");
 const { DEFAULT_SETTINGS } = require("./constants");
-const { clampRowsPerColumn, clampGroupColumns } = require("./layout-settings");
+const {
+    clampRowsPerColumn,
+    clampGroupColumns,
+    clampModalWidthRem,
+    clampModalHeightVh
+} = require("./layout-settings");
 
 class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
@@ -39,6 +44,38 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                         this.plugin.settings.maxGroupColumns = clampGroupColumns(
                             value,
                             DEFAULT_SETTINGS.maxGroupColumns
+                        );
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName("Picker width (rem)")
+            .setDesc("Controls the maximum width of the popup window.")
+            .addText((text) => {
+                text
+                    .setPlaceholder(String(DEFAULT_SETTINGS.modalWidthRem))
+                    .setValue(String(this.plugin.getModalWidthRem()))
+                    .onChange(async (value) => {
+                        this.plugin.settings.modalWidthRem = clampModalWidthRem(
+                            value,
+                            DEFAULT_SETTINGS.modalWidthRem
+                        );
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName("Picker height (vh)")
+            .setDesc("Controls the maximum height of the popup window as a percentage of the viewport.")
+            .addText((text) => {
+                text
+                    .setPlaceholder(String(DEFAULT_SETTINGS.modalHeightVh))
+                    .setValue(String(this.plugin.getModalHeightVh()))
+                    .onChange(async (value) => {
+                        this.plugin.settings.modalHeightVh = clampModalHeightVh(
+                            value,
+                            DEFAULT_SETTINGS.modalHeightVh
                         );
                         await this.plugin.savePluginSettings();
                     });

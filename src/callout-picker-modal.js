@@ -1,5 +1,5 @@
 const { Modal, setIcon } = require("obsidian");
-const { getRelativeIndex } = require("./navigation-utils");
+const { moveGridSelection } = require("./navigation-utils");
 const { buildPickerRows } = require("./picker-layout");
 
 class CalloutPickerModal extends Modal {
@@ -30,6 +30,8 @@ class CalloutPickerModal extends Modal {
 
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
+        this.modalEl.style.setProperty("--custom-callout-modal-width", `${this.controller.getModalWidthRem()}rem`);
+        this.modalEl.style.setProperty("--custom-callout-modal-height", `${this.controller.getModalHeightVh()}vh`);
 
         let itemIndex = 0;
         const columnBlocks = [];
@@ -90,6 +92,10 @@ class CalloutPickerModal extends Modal {
         let selectedItemNode = null;
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"))
             .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+        const getVisibleColumns = () => columnBlocks
+            .map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
+                .filter((itemNode) => !itemNode.hasClass("is-search-hidden")))
+            .filter((items) => items.length > 0);
         const compareVisibleItems = (a, b) => {
             const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
             const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
@@ -112,16 +118,35 @@ class CalloutPickerModal extends Modal {
             selectedItemNode.addClass("is-search-top-result");
             selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
         };
-        const moveSelection = (delta) => {
-            const visibleItems = getVisibleMenuItems().sort(compareVisibleItems);
-            if (visibleItems.length === 0) {
+        const moveSelectionInGrid = (direction) => {
+            const visibleColumns = getVisibleColumns();
+            if (visibleColumns.length === 0) {
                 return;
             }
 
-            const currentIndex = selectedItemNode ? visibleItems.indexOf(selectedItemNode) : -1;
-            const nextIndex = getRelativeIndex(currentIndex, visibleItems.length, delta);
-            if (nextIndex >= 0) {
-                setSelectedItem(visibleItems[nextIndex]);
+            let currentColumnIndex = -1;
+            let currentRowIndex = -1;
+            if (selectedItemNode) {
+                visibleColumns.some((columnItems, columnIndex) => {
+                    const rowIndex = columnItems.indexOf(selectedItemNode);
+                    if (rowIndex === -1) {
+                        return false;
+                    }
+
+                    currentColumnIndex = columnIndex;
+                    currentRowIndex = rowIndex;
+                    return true;
+                });
+            }
+
+            const target = moveGridSelection(
+                visibleColumns.map((items) => items.length),
+                currentColumnIndex,
+                currentRowIndex,
+                direction
+            );
+            if (target) {
+                setSelectedItem(visibleColumns[target.columnIndex][target.rowIndex]);
             }
         };
 
@@ -180,13 +205,25 @@ class CalloutPickerModal extends Modal {
         searchInput.addEventListener("keydown", (event) => {
             if (event.key === "ArrowDown") {
                 event.preventDefault();
-                moveSelection(1);
+                moveSelectionInGrid("down");
                 return;
             }
 
             if (event.key === "ArrowUp") {
                 event.preventDefault();
-                moveSelection(-1);
+                moveSelectionInGrid("up");
+                return;
+            }
+
+            if (event.key === "ArrowRight") {
+                event.preventDefault();
+                moveSelectionInGrid("right");
+                return;
+            }
+
+            if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                moveSelectionInGrid("left");
                 return;
             }
 

@@ -26,6 +26,8 @@ var require_constants = __commonJS({
     var DEFAULT_SETTINGS2 = {
       maxRowsPerColumn: 8,
       maxGroupColumns: 3,
+      modalWidthRem: 42,
+      modalHeightVh: 82,
       preferCustomInSearch: true
     };
     var GROUP_PROPERTY_PREFIX = "callout-group-";
@@ -371,8 +373,67 @@ var require_navigation_utils = __commonJS({
       }
       return (currentIndex + delta + itemCount) % itemCount;
     }
+    function normalizeGridPosition(columnLengths, currentColumnIndex, currentRowIndex, preferEnd = false) {
+      if (!Array.isArray(columnLengths) || columnLengths.length === 0) {
+        return null;
+      }
+      const nonEmptyColumns = columnLengths.map((length, columnIndex) => ({ length, columnIndex })).filter((entry) => Number.isInteger(entry.length) && entry.length > 0);
+      if (nonEmptyColumns.length === 0) {
+        return null;
+      }
+      if (Number.isInteger(currentColumnIndex) && currentColumnIndex >= 0 && currentColumnIndex < columnLengths.length && Number.isInteger(currentRowIndex) && currentRowIndex >= 0 && currentRowIndex < columnLengths[currentColumnIndex]) {
+        return { columnIndex: currentColumnIndex, rowIndex: currentRowIndex };
+      }
+      const fallback = preferEnd ? nonEmptyColumns[nonEmptyColumns.length - 1] : nonEmptyColumns[0];
+      return {
+        columnIndex: fallback.columnIndex,
+        rowIndex: preferEnd ? fallback.length - 1 : 0
+      };
+    }
+    function moveGridSelection(columnLengths, currentColumnIndex, currentRowIndex, direction) {
+      const hasValidCurrentSelection = Array.isArray(columnLengths) && Number.isInteger(currentColumnIndex) && currentColumnIndex >= 0 && currentColumnIndex < columnLengths.length && Number.isInteger(currentRowIndex) && currentRowIndex >= 0 && currentRowIndex < columnLengths[currentColumnIndex];
+      const start = normalizeGridPosition(
+        columnLengths,
+        currentColumnIndex,
+        currentRowIndex,
+        direction === "up" || direction === "left"
+      );
+      if (!start) {
+        return null;
+      }
+      if (!hasValidCurrentSelection) {
+        return start;
+      }
+      if (direction === "down") {
+        if (start.rowIndex + 1 < columnLengths[start.columnIndex]) {
+          return { columnIndex: start.columnIndex, rowIndex: start.rowIndex + 1 };
+        }
+        const nextColumnIndex = getRelativeIndex(start.columnIndex, columnLengths.length, 1);
+        return { columnIndex: nextColumnIndex, rowIndex: 0 };
+      }
+      if (direction === "up") {
+        if (start.rowIndex - 1 >= 0) {
+          return { columnIndex: start.columnIndex, rowIndex: start.rowIndex - 1 };
+        }
+        const previousColumnIndex = getRelativeIndex(start.columnIndex, columnLengths.length, -1);
+        return {
+          columnIndex: previousColumnIndex,
+          rowIndex: columnLengths[previousColumnIndex] - 1
+        };
+      }
+      if (direction === "right" || direction === "left") {
+        const delta = direction === "right" ? 1 : -1;
+        const targetColumnIndex = getRelativeIndex(start.columnIndex, columnLengths.length, delta);
+        return {
+          columnIndex: targetColumnIndex,
+          rowIndex: Math.min(start.rowIndex, columnLengths[targetColumnIndex] - 1)
+        };
+      }
+      return start;
+    }
     module2.exports = {
-      getRelativeIndex
+      getRelativeIndex,
+      moveGridSelection
     };
   }
 });
@@ -503,7 +564,7 @@ var require_picker_layout = __commonJS({
 var require_callout_picker_modal = __commonJS({
   "src/callout-picker-modal.js"(exports2, module2) {
     var { Modal, setIcon } = require("obsidian");
-    var { getRelativeIndex } = require_navigation_utils();
+    var { moveGridSelection } = require_navigation_utils();
     var { buildPickerRows } = require_picker_layout();
     var CalloutPickerModal = class extends Modal {
       constructor(app, options) {
@@ -529,6 +590,8 @@ var require_callout_picker_modal = __commonJS({
         const content = shell.createDiv({ cls: "custom-callout-context-menu-content" });
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
+        this.modalEl.style.setProperty("--custom-callout-modal-width", `${this.controller.getModalWidthRem()}rem`);
+        this.modalEl.style.setProperty("--custom-callout-modal-height", `${this.controller.getModalHeightVh()}vh`);
         let itemIndex = 0;
         const columnBlocks = [];
         const rowEntries = [];
@@ -580,6 +643,7 @@ var require_callout_picker_modal = __commonJS({
         }
         let selectedItemNode = null;
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+        const getVisibleColumns = () => columnBlocks.map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"))).filter((items) => items.length > 0);
         const compareVisibleItems = (a, b) => {
           const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
           const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
@@ -600,15 +664,32 @@ var require_callout_picker_modal = __commonJS({
           selectedItemNode.addClass("is-search-top-result");
           selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
         };
-        const moveSelection = (delta) => {
-          const visibleItems = getVisibleMenuItems().sort(compareVisibleItems);
-          if (visibleItems.length === 0) {
+        const moveSelectionInGrid = (direction) => {
+          const visibleColumns = getVisibleColumns();
+          if (visibleColumns.length === 0) {
             return;
           }
-          const currentIndex = selectedItemNode ? visibleItems.indexOf(selectedItemNode) : -1;
-          const nextIndex = getRelativeIndex(currentIndex, visibleItems.length, delta);
-          if (nextIndex >= 0) {
-            setSelectedItem(visibleItems[nextIndex]);
+          let currentColumnIndex = -1;
+          let currentRowIndex = -1;
+          if (selectedItemNode) {
+            visibleColumns.some((columnItems, columnIndex) => {
+              const rowIndex = columnItems.indexOf(selectedItemNode);
+              if (rowIndex === -1) {
+                return false;
+              }
+              currentColumnIndex = columnIndex;
+              currentRowIndex = rowIndex;
+              return true;
+            });
+          }
+          const target = moveGridSelection(
+            visibleColumns.map((items) => items.length),
+            currentColumnIndex,
+            currentRowIndex,
+            direction
+          );
+          if (target) {
+            setSelectedItem(visibleColumns[target.columnIndex][target.rowIndex]);
           }
         };
         const applyFilter = () => {
@@ -650,12 +731,22 @@ var require_callout_picker_modal = __commonJS({
         searchInput.addEventListener("keydown", (event) => {
           if (event.key === "ArrowDown") {
             event.preventDefault();
-            moveSelection(1);
+            moveSelectionInGrid("down");
             return;
           }
           if (event.key === "ArrowUp") {
             event.preventDefault();
-            moveSelection(-1);
+            moveSelectionInGrid("up");
+            return;
+          }
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            moveSelectionInGrid("right");
+            return;
+          }
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            moveSelectionInGrid("left");
             return;
           }
           if (event.key === "Enter") {
@@ -808,6 +899,8 @@ var require_callout_menu_controller = __commonJS({
         this.editorService = options.editorService;
         this.getMaxRowsPerColumn = options.getMaxRowsPerColumn;
         this.getMaxGroupColumns = options.getMaxGroupColumns;
+        this.getModalWidthRem = options.getModalWidthRem;
+        this.getModalHeightVh = options.getModalHeightVh;
         this.preferCustomInSearch = options.preferCustomInSearch;
       }
       unload() {
@@ -911,6 +1004,10 @@ var require_layout_settings = __commonJS({
   "src/layout-settings.js"(exports2, module2) {
     var MAX_ROWS_PER_COLUMN = 24;
     var MAX_GROUP_COLUMNS = 3;
+    var MIN_MODAL_WIDTH_REM = 24;
+    var MAX_MODAL_WIDTH_REM = 72;
+    var MIN_MODAL_HEIGHT_VH = 40;
+    var MAX_MODAL_HEIGHT_VH = 95;
     function clampRowsPerColumn2(value, fallback) {
       const parsed = Number(value);
       if (!Number.isFinite(parsed)) {
@@ -925,11 +1022,31 @@ var require_layout_settings = __commonJS({
       }
       return Math.min(MAX_GROUP_COLUMNS, Math.max(1, Math.round(parsed)));
     }
+    function clampModalWidthRem2(value, fallback) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return fallback;
+      }
+      return Math.min(MAX_MODAL_WIDTH_REM, Math.max(MIN_MODAL_WIDTH_REM, Math.round(parsed)));
+    }
+    function clampModalHeightVh2(value, fallback) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return fallback;
+      }
+      return Math.min(MAX_MODAL_HEIGHT_VH, Math.max(MIN_MODAL_HEIGHT_VH, Math.round(parsed)));
+    }
     module2.exports = {
       MAX_ROWS_PER_COLUMN,
       MAX_GROUP_COLUMNS,
+      MAX_MODAL_HEIGHT_VH,
+      MAX_MODAL_WIDTH_REM,
+      MIN_MODAL_HEIGHT_VH,
+      MIN_MODAL_WIDTH_REM,
       clampRowsPerColumn: clampRowsPerColumn2,
-      clampGroupColumns: clampGroupColumns2
+      clampGroupColumns: clampGroupColumns2,
+      clampModalHeightVh: clampModalHeightVh2,
+      clampModalWidthRem: clampModalWidthRem2
     };
   }
 });
@@ -939,7 +1056,12 @@ var require_settings_tab = __commonJS({
   "src/settings-tab.js"(exports2, module2) {
     var { PluginSettingTab, Setting } = require("obsidian");
     var { DEFAULT_SETTINGS: DEFAULT_SETTINGS2 } = require_constants();
-    var { clampRowsPerColumn: clampRowsPerColumn2, clampGroupColumns: clampGroupColumns2 } = require_layout_settings();
+    var {
+      clampRowsPerColumn: clampRowsPerColumn2,
+      clampGroupColumns: clampGroupColumns2,
+      clampModalWidthRem: clampModalWidthRem2,
+      clampModalHeightVh: clampModalHeightVh2
+    } = require_layout_settings();
     var CustomCalloutContextMenuSettingTab2 = class extends PluginSettingTab {
       constructor(app, plugin) {
         super(app, plugin);
@@ -966,6 +1088,24 @@ var require_settings_tab = __commonJS({
             await this.plugin.savePluginSettings();
           });
         });
+        new Setting(containerEl).setName("Picker width (rem)").setDesc("Controls the maximum width of the popup window.").addText((text) => {
+          text.setPlaceholder(String(DEFAULT_SETTINGS2.modalWidthRem)).setValue(String(this.plugin.getModalWidthRem())).onChange(async (value) => {
+            this.plugin.settings.modalWidthRem = clampModalWidthRem2(
+              value,
+              DEFAULT_SETTINGS2.modalWidthRem
+            );
+            await this.plugin.savePluginSettings();
+          });
+        });
+        new Setting(containerEl).setName("Picker height (vh)").setDesc("Controls the maximum height of the popup window as a percentage of the viewport.").addText((text) => {
+          text.setPlaceholder(String(DEFAULT_SETTINGS2.modalHeightVh)).setValue(String(this.plugin.getModalHeightVh())).onChange(async (value) => {
+            this.plugin.settings.modalHeightVh = clampModalHeightVh2(
+              value,
+              DEFAULT_SETTINGS2.modalHeightVh
+            );
+            await this.plugin.savePluginSettings();
+          });
+        });
         new Setting(containerEl).setName("Prefer custom callouts in search").setDesc("Biases fuzzy search toward your CSS-defined custom callouts before built-in Obsidian ones.").addToggle((toggle) => {
           toggle.setValue(this.plugin.preferCustomInSearch()).onChange(async (value) => {
             this.plugin.settings.preferCustomInSearch = value;
@@ -986,7 +1126,12 @@ var { DEFAULT_SETTINGS } = require_constants();
 var { CalloutRegistry } = require_callout_registry();
 var { EditorCalloutService } = require_editor_callout_service();
 var { CalloutMenuController } = require_callout_menu_controller();
-var { clampRowsPerColumn, clampGroupColumns } = require_layout_settings();
+var {
+  clampRowsPerColumn,
+  clampGroupColumns,
+  clampModalWidthRem,
+  clampModalHeightVh
+} = require_layout_settings();
 var { CustomCalloutContextMenuSettingTab } = require_settings_tab();
 module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
   async onload() {
@@ -999,6 +1144,8 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
       editorService: this.editorService,
       getMaxRowsPerColumn: () => this.getMaxRowsPerColumn(),
       getMaxGroupColumns: () => this.getMaxGroupColumns(),
+      getModalWidthRem: () => this.getModalWidthRem(),
+      getModalHeightVh: () => this.getModalHeightVh(),
       preferCustomInSearch: () => this.preferCustomInSearch()
     });
     await this.registry.refresh();
@@ -1029,6 +1176,12 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
   }
   getMaxGroupColumns() {
     return clampGroupColumns(this.settings.maxGroupColumns, DEFAULT_SETTINGS.maxGroupColumns);
+  }
+  getModalWidthRem() {
+    return clampModalWidthRem(this.settings.modalWidthRem, DEFAULT_SETTINGS.modalWidthRem);
+  }
+  getModalHeightVh() {
+    return clampModalHeightVh(this.settings.modalHeightVh, DEFAULT_SETTINGS.modalHeightVh);
   }
   preferCustomInSearch() {
     return this.settings.preferCustomInSearch !== false;

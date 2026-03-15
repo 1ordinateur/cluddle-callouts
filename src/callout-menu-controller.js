@@ -8,6 +8,8 @@ class CalloutMenuController {
         this.editorService = options.editorService;
         this.getMaxRowsPerColumn = options.getMaxRowsPerColumn;
         this.getMaxGroupColumns = options.getMaxGroupColumns;
+        this.getModalWidthRem = options.getModalWidthRem;
+        this.getModalHeightVh = options.getModalHeightVh;
         this.preferCustomInSearch = options.preferCustomInSearch;
     }
 

@@ -19,6 +19,8 @@ const BUILTIN_CALLOUTS = [
 const DEFAULT_SETTINGS = {
     maxRowsPerColumn: 8,
     maxGroupColumns: 3,
+    modalWidthRem: 42,
+    modalHeightVh: 82,
     preferCustomInSearch: true
 };
 
