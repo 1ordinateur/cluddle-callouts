@@ -1,0 +1,20 @@
+{
+  "name": "cluddle-callouts",
+  "version": "0.1.0",
+  "description": "Adds CSS-defined custom callouts to the editor right-click menu and colors callout options.",
+  "main": "main.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "test": "node --test"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin"
+  ],
+  "author": "1ordinateur",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.25.2"
+  }
+}
