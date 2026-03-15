@@ -306,7 +306,7 @@ var require_editor_callout_service = __commonJS({
         return /^\s*>/.test(line || "");
       }
       parseCalloutHeaderLine(line) {
-        const match = /^(\s*>\s*)\[!([^\]|+-]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
+        const match = /^(\s*>\s*)\[!([^\]|]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
         if (!match) {
           return null;
         }

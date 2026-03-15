@@ -78,7 +78,7 @@ class EditorCalloutService {
     }
 
     parseCalloutHeaderLine(line) {
-        const match = /^(\s*>\s*)\[!([^\]|+-]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
+        const match = /^(\s*>\s*)\[!([^\]|]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
         if (!match) {
             return null;
         }

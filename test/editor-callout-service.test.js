@@ -52,6 +52,23 @@ test("finds a callout context from inside a block", () => {
     assert.equal(context.lineEnd, 2);
 });
 
+test("preserves hyphenated and plus-sign custom callout IDs", () => {
+    const service = new EditorCalloutService();
+    const hyphenEditor = createEditor([
+        "> [!my-callout] Title",
+        "> body"
+    ], 1);
+    const plusEditor = createEditor([
+        "> [!math+proof] Title",
+        "> body"
+    ], 1);
+
+    assert.equal(service.findCalloutContext(hyphenEditor).calloutType, "my-callout");
+    assert.equal(service.getActiveCalloutTypeFromEditor(hyphenEditor), "my-callout");
+    assert.equal(service.findCalloutContext(plusEditor).calloutType, "math+proof");
+    assert.equal(service.getActiveCalloutTypeFromEditor(plusEditor), "math+proof");
+});
+
 test("updates only the callout type on an existing header", () => {
     const service = new EditorCalloutService();
     const editor = createEditor([
