@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { getRelativeIndex, moveGridSelection } = require("../src/navigation-utils");
+const { getRelativeIndex, moveGridSelection, movePickerSelection } = require("../src/navigation-utils");
 const { clampModalHeightVh, clampModalWidthRem } = require("../src/layout-settings");
 
 test("getRelativeIndex moves forward with wraparound", () => {
@@ -44,6 +44,40 @@ test("moveGridSelection falls back to the first or last visible item when there 
     assert.deepEqual(moveGridSelection([2, 2], -1, -1, "right"), { columnIndex: 0, rowIndex: 0 });
     assert.deepEqual(moveGridSelection([2, 2], -1, -1, "up"), { columnIndex: 1, rowIndex: 1 });
     assert.deepEqual(moveGridSelection([2, 2], -1, -1, "left"), { columnIndex: 1, rowIndex: 1 });
+});
+
+test("movePickerSelection moves horizontally within the visible columns of the same row", () => {
+    const rows = [
+        [2, 3, 1],
+        [5]
+    ];
+
+    assert.deepEqual(movePickerSelection(rows, 0, 0, 1, "right"), { rowIndex: 0, columnIndex: 1, itemIndex: 1 });
+    assert.deepEqual(movePickerSelection(rows, 0, 1, 2, "right"), { rowIndex: 0, columnIndex: 2, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, 0, 0, 1, "left"), { rowIndex: 0, columnIndex: 2, itemIndex: 0 });
+});
+
+test("movePickerSelection follows displayed order vertically across columns and rows", () => {
+    const rows = [
+        [2, 2],
+        [1, 3]
+    ];
+
+    assert.deepEqual(movePickerSelection(rows, 0, 0, 1, "down"), { rowIndex: 0, columnIndex: 1, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, 0, 1, 1, "down"), { rowIndex: 1, columnIndex: 0, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, 1, 0, 0, "up"), { rowIndex: 0, columnIndex: 1, itemIndex: 1 });
+});
+
+test("movePickerSelection resets to the first or last visible item when there is no current selection", () => {
+    const rows = [
+        [0, 2],
+        [1, 0]
+    ];
+
+    assert.deepEqual(movePickerSelection(rows, -1, -1, -1, "down"), { rowIndex: 0, columnIndex: 1, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, -1, -1, -1, "right"), { rowIndex: 0, columnIndex: 1, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, -1, -1, -1, "up"), { rowIndex: 1, columnIndex: 0, itemIndex: 0 });
+    assert.deepEqual(movePickerSelection(rows, -1, -1, -1, "left"), { rowIndex: 1, columnIndex: 0, itemIndex: 0 });
 });
 
 test("clampModalWidthRem enforces width bounds", () => {

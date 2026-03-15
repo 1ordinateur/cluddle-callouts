@@ -431,9 +431,113 @@ var require_navigation_utils = __commonJS({
       }
       return start;
     }
+    function normalizePickerPosition(rowColumnLengths, currentRowIndex, currentColumnIndex, currentItemIndex, preferEnd = false) {
+      if (!Array.isArray(rowColumnLengths) || rowColumnLengths.length === 0) {
+        return null;
+      }
+      const visibleRows = rowColumnLengths.map((columns, rowIndex) => ({
+        rowIndex,
+        columns: Array.isArray(columns) ? columns.map((length, columnIndex) => ({ length, columnIndex })).filter((entry) => Number.isInteger(entry.length) && entry.length > 0) : []
+      })).filter((row) => row.columns.length > 0);
+      if (visibleRows.length === 0) {
+        return null;
+      }
+      if (Number.isInteger(currentRowIndex) && currentRowIndex >= 0 && currentRowIndex < rowColumnLengths.length && Array.isArray(rowColumnLengths[currentRowIndex]) && Number.isInteger(currentColumnIndex) && currentColumnIndex >= 0 && currentColumnIndex < rowColumnLengths[currentRowIndex].length && Number.isInteger(currentItemIndex) && currentItemIndex >= 0 && currentItemIndex < rowColumnLengths[currentRowIndex][currentColumnIndex]) {
+        return {
+          rowIndex: currentRowIndex,
+          columnIndex: currentColumnIndex,
+          itemIndex: currentItemIndex
+        };
+      }
+      const fallbackRow = preferEnd ? visibleRows[visibleRows.length - 1] : visibleRows[0];
+      const fallbackColumn = preferEnd ? fallbackRow.columns[fallbackRow.columns.length - 1] : fallbackRow.columns[0];
+      return {
+        rowIndex: fallbackRow.rowIndex,
+        columnIndex: fallbackColumn.columnIndex,
+        itemIndex: preferEnd ? fallbackColumn.length - 1 : 0
+      };
+    }
+    function movePickerSelection(rowColumnLengths, currentRowIndex, currentColumnIndex, currentItemIndex, direction) {
+      const hasValidCurrentSelection = Array.isArray(rowColumnLengths) && Number.isInteger(currentRowIndex) && currentRowIndex >= 0 && currentRowIndex < rowColumnLengths.length && Array.isArray(rowColumnLengths[currentRowIndex]) && Number.isInteger(currentColumnIndex) && currentColumnIndex >= 0 && currentColumnIndex < rowColumnLengths[currentRowIndex].length && Number.isInteger(currentItemIndex) && currentItemIndex >= 0 && currentItemIndex < rowColumnLengths[currentRowIndex][currentColumnIndex];
+      const preferEnd = direction === "up" || direction === "left";
+      const start = normalizePickerPosition(
+        rowColumnLengths,
+        currentRowIndex,
+        currentColumnIndex,
+        currentItemIndex,
+        preferEnd
+      );
+      if (!start) {
+        return null;
+      }
+      if (!hasValidCurrentSelection) {
+        return start;
+      }
+      const currentRow = rowColumnLengths[start.rowIndex];
+      const currentColumnLength = currentRow[start.columnIndex];
+      if (direction === "down") {
+        if (start.itemIndex + 1 < currentColumnLength) {
+          return { rowIndex: start.rowIndex, columnIndex: start.columnIndex, itemIndex: start.itemIndex + 1 };
+        }
+        const nextColumnIndex = currentRow.findIndex((length, columnIndex) => columnIndex > start.columnIndex && length > 0);
+        if (nextColumnIndex !== -1) {
+          return { rowIndex: start.rowIndex, columnIndex: nextColumnIndex, itemIndex: 0 };
+        }
+        const nextRowIndex = rowColumnLengths.findIndex((columns, rowIndex) => rowIndex > start.rowIndex && Array.isArray(columns) && columns.some((length) => length > 0));
+        if (nextRowIndex !== -1) {
+          const firstColumnIndex = rowColumnLengths[nextRowIndex].findIndex((length) => length > 0);
+          return { rowIndex: nextRowIndex, columnIndex: firstColumnIndex, itemIndex: 0 };
+        }
+        return normalizePickerPosition(rowColumnLengths, -1, -1, -1, false);
+      }
+      if (direction === "up") {
+        if (start.itemIndex - 1 >= 0) {
+          return { rowIndex: start.rowIndex, columnIndex: start.columnIndex, itemIndex: start.itemIndex - 1 };
+        }
+        for (let columnIndex = start.columnIndex - 1; columnIndex >= 0; columnIndex -= 1) {
+          if (currentRow[columnIndex] > 0) {
+            return {
+              rowIndex: start.rowIndex,
+              columnIndex,
+              itemIndex: currentRow[columnIndex] - 1
+            };
+          }
+        }
+        for (let rowIndex = start.rowIndex - 1; rowIndex >= 0; rowIndex -= 1) {
+          const row = rowColumnLengths[rowIndex];
+          if (!Array.isArray(row)) {
+            continue;
+          }
+          for (let columnIndex = row.length - 1; columnIndex >= 0; columnIndex -= 1) {
+            if (row[columnIndex] > 0) {
+              return {
+                rowIndex,
+                columnIndex,
+                itemIndex: row[columnIndex] - 1
+              };
+            }
+          }
+        }
+        return normalizePickerPosition(rowColumnLengths, -1, -1, -1, true);
+      }
+      if (direction === "right" || direction === "left") {
+        const delta = direction === "right" ? 1 : -1;
+        const currentVisibleColumns = currentRow.map((length, columnIndex) => ({ length, columnIndex })).filter((entry) => entry.length > 0);
+        const visibleColumnPosition = currentVisibleColumns.findIndex((entry) => entry.columnIndex === start.columnIndex);
+        const targetVisiblePosition = getRelativeIndex(visibleColumnPosition, currentVisibleColumns.length, delta);
+        const targetColumn = currentVisibleColumns[targetVisiblePosition];
+        return {
+          rowIndex: start.rowIndex,
+          columnIndex: targetColumn.columnIndex,
+          itemIndex: Math.min(start.itemIndex, targetColumn.length - 1)
+        };
+      }
+      return start;
+    }
     module2.exports = {
       getRelativeIndex,
-      moveGridSelection
+      moveGridSelection,
+      movePickerSelection
     };
   }
 });
@@ -564,7 +668,7 @@ var require_picker_layout = __commonJS({
 var require_callout_picker_modal = __commonJS({
   "src/callout-picker-modal.js"(exports2, module2) {
     var { Modal, setIcon } = require("obsidian");
-    var { moveGridSelection } = require_navigation_utils();
+    var { movePickerSelection } = require_navigation_utils();
     var { buildPickerRows } = require_picker_layout();
     var CalloutPickerModal = class extends Modal {
       constructor(app, options) {
@@ -642,8 +746,8 @@ var require_callout_picker_modal = __commonJS({
           rowEntries.push(rowEntry);
         }
         let selectedItemNode = null;
+        let lastAppliedQuery = null;
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
-        const getVisibleColumns = () => columnBlocks.map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"))).filter((items) => items.length > 0);
         const compareVisibleItems = (a, b) => {
           const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
           const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
@@ -652,6 +756,7 @@ var require_callout_picker_modal = __commonJS({
           }
           return this.controller.compareMenuItems(a, b);
         };
+        const getVisibleRows = () => rowEntries.map((rowEntry) => rowEntry.blocks.map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden")).sort(compareVisibleItems)).filter((items) => items.length > 0)).filter((columns) => columns.length > 0);
         const setSelectedItem = (itemNode) => {
           const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
           for (const currentItem of menuItems) {
@@ -665,35 +770,41 @@ var require_callout_picker_modal = __commonJS({
           selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
         };
         const moveSelectionInGrid = (direction) => {
-          const visibleColumns = getVisibleColumns();
-          if (visibleColumns.length === 0) {
+          const visibleRows = getVisibleRows();
+          if (visibleRows.length === 0) {
             return;
           }
-          let currentColumnIndex = -1;
-          let currentRowIndex = -1;
+          let currentVisibleRowIndex = -1;
+          let currentVisibleColumnIndex = -1;
+          let currentItemIndex = -1;
           if (selectedItemNode) {
-            visibleColumns.some((columnItems, columnIndex) => {
-              const rowIndex = columnItems.indexOf(selectedItemNode);
-              if (rowIndex === -1) {
-                return false;
-              }
-              currentColumnIndex = columnIndex;
-              currentRowIndex = rowIndex;
-              return true;
+            visibleRows.some((columns, rowIndex) => {
+              return columns.some((columnItems, columnIndex) => {
+                const itemIndex2 = columnItems.indexOf(selectedItemNode);
+                if (itemIndex2 === -1) {
+                  return false;
+                }
+                currentVisibleRowIndex = rowIndex;
+                currentVisibleColumnIndex = columnIndex;
+                currentItemIndex = itemIndex2;
+                return true;
+              });
             });
           }
-          const target = moveGridSelection(
-            visibleColumns.map((items) => items.length),
-            currentColumnIndex,
-            currentRowIndex,
+          const target = movePickerSelection(
+            visibleRows.map((columns) => columns.map((items) => items.length)),
+            currentVisibleRowIndex,
+            currentVisibleColumnIndex,
+            currentItemIndex,
             direction
           );
           if (target) {
-            setSelectedItem(visibleColumns[target.columnIndex][target.rowIndex]);
+            setSelectedItem(visibleRows[target.rowIndex][target.columnIndex][target.itemIndex]);
           }
         };
         const applyFilter = () => {
           const query = searchInput.value.trim().toLowerCase();
+          const queryChanged = query !== lastAppliedQuery;
           const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
           let bestMatch = null;
           for (const itemNode of menuItems) {
@@ -719,13 +830,16 @@ var require_callout_picker_modal = __commonJS({
           const visibleItems = getVisibleMenuItems();
           if (visibleItems.length === 0) {
             setSelectedItem(null);
+            lastAppliedQuery = query;
             return;
           }
-          if (selectedItemNode && visibleItems.includes(selectedItemNode)) {
+          if (!queryChanged && selectedItemNode && visibleItems.includes(selectedItemNode)) {
             setSelectedItem(selectedItemNode);
+            lastAppliedQuery = query;
             return;
           }
           setSelectedItem(bestMatch ? bestMatch.itemNode : visibleItems.sort(compareVisibleItems)[0]);
+          lastAppliedQuery = query;
         };
         searchInput.addEventListener("input", applyFilter);
         searchInput.addEventListener("keydown", (event) => {

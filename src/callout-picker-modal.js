@@ -1,5 +1,5 @@
 const { Modal, setIcon } = require("obsidian");
-const { moveGridSelection } = require("./navigation-utils");
+const { movePickerSelection } = require("./navigation-utils");
 const { buildPickerRows } = require("./picker-layout");
 
 class CalloutPickerModal extends Modal {
@@ -90,13 +90,10 @@ class CalloutPickerModal extends Modal {
         }
 
         let selectedItemNode = null;
+        let lastAppliedQuery = null;
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"))
             .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
-        const getVisibleColumns = () => columnBlocks
-            .map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
-                .filter((itemNode) => !itemNode.hasClass("is-search-hidden")))
-            .filter((items) => items.length > 0);
-        const compareVisibleItems = (a, b) => {
+            const compareVisibleItems = (a, b) => {
             const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
             const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
             if (aOrder !== bOrder) {
@@ -104,6 +101,13 @@ class CalloutPickerModal extends Modal {
             }
             return this.controller.compareMenuItems(a, b);
         };
+        const getVisibleRows = () => rowEntries
+            .map((rowEntry) => rowEntry.blocks
+                .map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
+                    .filter((itemNode) => !itemNode.hasClass("is-search-hidden"))
+                    .sort(compareVisibleItems))
+                .filter((items) => items.length > 0))
+            .filter((columns) => columns.length > 0);
         const setSelectedItem = (itemNode) => {
             const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
             for (const currentItem of menuItems) {
@@ -119,39 +123,45 @@ class CalloutPickerModal extends Modal {
             selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
         };
         const moveSelectionInGrid = (direction) => {
-            const visibleColumns = getVisibleColumns();
-            if (visibleColumns.length === 0) {
+            const visibleRows = getVisibleRows();
+            if (visibleRows.length === 0) {
                 return;
             }
 
-            let currentColumnIndex = -1;
-            let currentRowIndex = -1;
+            let currentVisibleRowIndex = -1;
+            let currentVisibleColumnIndex = -1;
+            let currentItemIndex = -1;
             if (selectedItemNode) {
-                visibleColumns.some((columnItems, columnIndex) => {
-                    const rowIndex = columnItems.indexOf(selectedItemNode);
-                    if (rowIndex === -1) {
-                        return false;
-                    }
+                visibleRows.some((columns, rowIndex) => {
+                    return columns.some((columnItems, columnIndex) => {
+                        const itemIndex = columnItems.indexOf(selectedItemNode);
+                        if (itemIndex === -1) {
+                            return false;
+                        }
 
-                    currentColumnIndex = columnIndex;
-                    currentRowIndex = rowIndex;
-                    return true;
+                        currentVisibleRowIndex = rowIndex;
+                        currentVisibleColumnIndex = columnIndex;
+                        currentItemIndex = itemIndex;
+                        return true;
+                    });
                 });
             }
 
-            const target = moveGridSelection(
-                visibleColumns.map((items) => items.length),
-                currentColumnIndex,
-                currentRowIndex,
+            const target = movePickerSelection(
+                visibleRows.map((columns) => columns.map((items) => items.length)),
+                currentVisibleRowIndex,
+                currentVisibleColumnIndex,
+                currentItemIndex,
                 direction
             );
             if (target) {
-                setSelectedItem(visibleColumns[target.columnIndex][target.rowIndex]);
+                setSelectedItem(visibleRows[target.rowIndex][target.columnIndex][target.itemIndex]);
             }
         };
 
         const applyFilter = () => {
             const query = searchInput.value.trim().toLowerCase();
+            const queryChanged = query !== lastAppliedQuery;
             const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
             let bestMatch = null;
 
@@ -190,15 +200,18 @@ class CalloutPickerModal extends Modal {
             const visibleItems = getVisibleMenuItems();
             if (visibleItems.length === 0) {
                 setSelectedItem(null);
+                lastAppliedQuery = query;
                 return;
             }
 
-            if (selectedItemNode && visibleItems.includes(selectedItemNode)) {
+            if (!queryChanged && selectedItemNode && visibleItems.includes(selectedItemNode)) {
                 setSelectedItem(selectedItemNode);
+                lastAppliedQuery = query;
                 return;
             }
 
             setSelectedItem(bestMatch ? bestMatch.itemNode : visibleItems.sort(compareVisibleItems)[0]);
+            lastAppliedQuery = query;
         };
 
         searchInput.addEventListener("input", applyFilter);
