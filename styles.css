@@ -119,24 +119,42 @@
 
 .custom-callout-context-menu-item {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.38rem;
     width: var(--custom-callout-column-width);
     min-width: var(--custom-callout-column-width);
     max-width: var(--custom-callout-column-width);
+    cursor: pointer;
+}
+
+.custom-callout-context-menu-appearance {
+    all: unset;
+    --custom-callout-context-color: var(--callout-color, 128, 128, 128);
+    display: flex;
+    align-items: center;
+    gap: 0.38rem;
+    box-sizing: border-box;
+    font: inherit;
+    width: 100%;
     min-height: 1.9rem;
     border-radius: 0.5rem;
     padding-left: 0.18rem;
     padding-right: 0.15rem;
-    cursor: pointer;
     transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 .custom-callout-context-menu-item .menu-item-title,
-.custom-callout-context-menu-item .menu-item-icon {
+.custom-callout-context-menu-item .menu-item-icon,
+.custom-callout-context-menu-swatch {
     color: rgb(var(--custom-callout-context-color, 128, 128, 128));
     transition: color 120ms ease;
+}
+
+.custom-callout-context-menu-swatch {
+    display: block;
+    width: 0.7rem;
+    min-width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 999px;
+    background: rgb(var(--custom-callout-context-color, 128, 128, 128));
 }
 
 .custom-callout-context-menu-item .menu-item-icon {
@@ -172,17 +190,22 @@
     display: none;
 }
 
-.custom-callout-context-menu-item:hover {
+.custom-callout-context-menu-item:hover .custom-callout-context-menu-appearance {
     background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 12%, var(--background-primary));
     box-shadow: inset 0 0 0 1px color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 32%, transparent);
 }
 
 .custom-callout-context-menu-item:hover .menu-item-title,
-.custom-callout-context-menu-item:hover .menu-item-icon {
+.custom-callout-context-menu-item:hover .menu-item-icon,
+.custom-callout-context-menu-item:hover .custom-callout-context-menu-swatch {
     color: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 82%, white);
 }
 
-.custom-callout-context-menu-item.is-search-top-result {
+.custom-callout-context-menu-item:hover .custom-callout-context-menu-swatch {
+    background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 82%, white);
+}
+
+.custom-callout-context-menu-item.is-search-top-result .custom-callout-context-menu-appearance {
     background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 16%, var(--background-primary));
     box-shadow: inset 0 0 0 1px color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 40%, transparent);
 }

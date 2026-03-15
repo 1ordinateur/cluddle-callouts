@@ -93,16 +93,23 @@ class CalloutPickerModal extends Modal {
 
         let selectedItemNode = null;
         let lastAppliedQuery = null;
+        let activeQuery = "";
+        let scoreByItem = new Map();
+
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"))
             .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
-            const compareVisibleItems = (a, b) => {
-            const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
-            const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
-            if (aOrder !== bOrder) {
-                return aOrder - bOrder;
+
+        const compareVisibleItems = (a, b) => {
+            if (activeQuery.length > 0) {
+                const scoreDelta = (scoreByItem.get(b) || 0) - (scoreByItem.get(a) || 0);
+                if (scoreDelta !== 0) {
+                    return scoreDelta;
+                }
             }
+
             return this.controller.compareMenuItems(a, b);
         };
+
         const getVisibleRows = () => rowEntries
             .map((rowEntry) => rowEntry.blocks
                 .map((block) => Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
@@ -110,6 +117,7 @@ class CalloutPickerModal extends Modal {
                     .sort(compareVisibleItems))
                 .filter((items) => items.length > 0))
             .filter((columns) => columns.length > 0);
+
         const setSelectedItem = (itemNode) => {
             const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
             for (const currentItem of menuItems) {
@@ -124,6 +132,7 @@ class CalloutPickerModal extends Modal {
             selectedItemNode.addClass("is-search-top-result");
             selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
         };
+
         const moveSelectionInGrid = (direction) => {
             const visibleRows = getVisibleRows();
             if (visibleRows.length === 0) {
@@ -164,17 +173,17 @@ class CalloutPickerModal extends Modal {
         const applyFilter = () => {
             const query = searchInput.value.trim().toLowerCase();
             const queryChanged = query !== lastAppliedQuery;
+            activeQuery = query;
             const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
+            scoreByItem = new Map();
             let bestMatch = null;
 
             for (const itemNode of menuItems) {
                 itemNode.removeClass("is-search-top-result");
                 const score = this.controller.getMenuItemSearchScore(itemNode, query);
+                scoreByItem.set(itemNode, score);
                 const isVisible = score > 0;
                 itemNode.toggleClass("is-search-hidden", !isVisible);
-                itemNode.style.order = query.length === 0
-                    ? itemNode.getAttribute("data-default-order") || "0"
-                    : String(100000 - score);
 
                 if (!isVisible) {
                     continue;
@@ -190,8 +199,13 @@ class CalloutPickerModal extends Modal {
             }
 
             for (const block of columnBlocks) {
-                const visibleItems = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
-                    .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+                const items = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"));
+                items.sort(compareVisibleItems);
+                for (const itemNode of items) {
+                    block.section.appendChild(itemNode);
+                }
+
+                const visibleItems = items.filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
                 block.wrapper.toggleClass("is-empty", visibleItems.length === 0);
             }
 
@@ -272,20 +286,18 @@ class CalloutPickerModal extends Modal {
         itemNode.setAttribute("data-callout-concept", option.concept || "");
         itemNode.setAttribute("data-callout-search", this.controller.buildSearchText(option));
         itemNode.setAttribute("data-default-order", String(defaultOrder));
-        itemNode.style.setProperty("--custom-callout-context-color", option.color);
 
-        const iconEl = itemNode.createDiv({ cls: "menu-item-icon" });
-        if (option.icon) {
-            setIcon(iconEl, option.icon);
-        }
+        const appearanceEl = itemNode.createDiv({ cls: "custom-callout-context-menu-appearance callout" });
+        appearanceEl.setAttribute("data-callout", option.appearanceId || option.id);
 
-        itemNode.createDiv({
+        appearanceEl.createDiv({ cls: "custom-callout-context-menu-swatch" });
+        appearanceEl.createDiv({
             cls: "menu-item-title",
             text: this.controller.formatTitle(option.id)
         });
 
         if (this.controller.isOptionActive(option, this.activeType)) {
-            const checkEl = itemNode.createDiv({ cls: "menu-item-icon menu-item-icon-end" });
+            const checkEl = appearanceEl.createDiv({ cls: "menu-item-icon menu-item-icon-end" });
             setIcon(checkEl, "check");
         }
 
@@ -303,11 +315,11 @@ class CalloutPickerModal extends Modal {
         itemNode.setAttribute("data-callout-custom", "false");
         itemNode.setAttribute("data-callout-search", "none clear remove");
         itemNode.setAttribute("data-default-order", String(defaultOrder));
-        itemNode.style.setProperty("--custom-callout-context-color", "128, 128, 128");
 
-        const iconEl = itemNode.createDiv({ cls: "menu-item-icon" });
+        const appearanceEl = itemNode.createDiv({ cls: "custom-callout-context-menu-appearance" });
+        const iconEl = appearanceEl.createDiv({ cls: "menu-item-icon" });
         setIcon(iconEl, "eraser");
-        itemNode.createDiv({ cls: "menu-item-title", text: "None" });
+        appearanceEl.createDiv({ cls: "menu-item-title", text: "None" });
 
         itemNode.addEventListener("click", () => {
             this.onClear();

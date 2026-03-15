@@ -2,7 +2,7 @@
 
 Cluddle Callouts is an Obsidian plugin that makes callouts easier to insert, switch, and discover while editing notes.
 
-It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets, using their configured colors and icons where available.
+It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets.
 
 ## Example
 
@@ -37,7 +37,6 @@ Here is a full example of a CSS snippet entry that this plugin can process:
 .callout[data-callout="indicated"],
 .callout[data-callout="recommended"] {
   --callout-color: 230, 126, 34;
-  --callout-icon: lucide-stethoscope;
   --callout-concept: drug-usage;
   --callout-groups: drug disease;
   --callout-group-drug: indicated;
@@ -51,7 +50,7 @@ With that snippet enabled in Obsidian:
 - `recommended` is treated as an alias for the same callout
 - the callout appears in the picker under the `drug` group as `Indicated`
 - the same underlying callout also appears under the `disease` group as `Symptoms`
-- the picker uses the CSS callout color and icon automatically
+- the picker inherits the CSS callout color automatically
 
 You can define additional groups with more `--callout-group-<group-name>` properties. The alias list for each group is whitespace- or comma-separated, and the first alias becomes the displayed picker entry for that group.
 
@@ -64,6 +63,15 @@ The plugin includes settings for:
 - Picker width
 - Picker height
 - Whether custom callouts should rank above built-in ones in search
+
+## Disclosures
+
+- Desktop only
+- No network access
+- No accounts, payments, ads, or telemetry
+- Reads `.obsidian/appearance.json` and enabled CSS snippet files from `.obsidian/snippets/` to discover custom callout definitions
+- Stores only its own settings in Obsidian's plugin data store
+- Does not write to notes unless you choose a callout from the picker
 
 ## What Ships
 
@@ -86,6 +94,7 @@ That bundles the source tree into the shipped `main.js` at the repository root.
 
 ## Notes
 
+- Release assets for Obsidian should contain only `manifest.json`, `main.js`, and `styles.css`
 - Desktop only
 - No network access
 - Reads local Obsidian appearance settings and enabled CSS snippets from the vault config directory

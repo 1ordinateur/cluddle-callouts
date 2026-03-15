@@ -48,7 +48,6 @@ var require_callout_registry = __commonJS({
         this.app = app;
         this.customCallouts = [];
         this.aliasToPrimary = /* @__PURE__ */ new Map();
-        this.previewEl = null;
       }
       async refresh() {
         const configDir = this.app.vault.configDir;
@@ -59,7 +58,7 @@ var require_callout_registry = __commonJS({
           const appearance = JSON.parse(appearanceRaw);
           enabledSnippets = appearance.enabledCssSnippets || [];
         } catch (error) {
-          console.error("custom-callout-context-menu: failed to read appearance.json", error);
+          enabledSnippets = [];
         }
         const customCallouts = [];
         const aliasToPrimary = /* @__PURE__ */ new Map();
@@ -120,7 +119,6 @@ var require_callout_registry = __commonJS({
         return options;
       }
       buildMenuOptions(id, isCustom) {
-        const appearance = this.getCalloutAppearance(id);
         const customCallout = isCustom ? this.customCallouts.find((callout) => callout.id === id) : null;
         if (!customCallout || !Array.isArray(customCallout.groups) || customCallout.groups.length === 0) {
           return [{
@@ -131,8 +129,7 @@ var require_callout_registry = __commonJS({
             aliases: customCallout ? [customCallout.id, ...customCallout.aliases] : [],
             groupAliases: [id, ...customCallout ? customCallout.aliases : []],
             concept: customCallout ? customCallout.concept : id,
-            color: appearance.color,
-            icon: appearance.icon
+            appearanceId: id
           }];
         }
         return customCallout.groups.map((group) => {
@@ -140,13 +137,12 @@ var require_callout_registry = __commonJS({
           return {
             key: `custom:${id}:${group.name}`,
             id: insertId,
+            appearanceId: id,
             group: group.name,
             isCustom: true,
             aliases: [customCallout.id, ...customCallout.aliases],
             groupAliases: group.aliases,
-            concept: customCallout.concept,
-            color: appearance.color,
-            icon: appearance.icon
+            concept: customCallout.concept
           };
         });
       }
@@ -158,10 +154,6 @@ var require_callout_registry = __commonJS({
         return activeAliases.includes(activeType);
       }
       unload() {
-        if (this.previewEl) {
-          this.previewEl.remove();
-          this.previewEl = null;
-        }
       }
       parseCalloutBlocks(css, snippetId) {
         const blocks = [];
@@ -210,26 +202,6 @@ var require_callout_registry = __commonJS({
       }
       parseMetadataList(value) {
         return String(value || "").split(/[\s,]+/).map((entry) => entry.trim()).filter((entry) => entry.length > 0);
-      }
-      getCalloutAppearance(id) {
-        const previewEl = this.getPreviewEl();
-        previewEl.setAttribute("data-callout", id);
-        const styles = window.getComputedStyle(previewEl);
-        const color = styles.getPropertyValue("--callout-color").trim() || "128, 128, 128";
-        const rawIcon = styles.getPropertyValue("--callout-icon").trim();
-        const icon = rawIcon.startsWith("lucide-") ? rawIcon.slice("lucide-".length) : rawIcon;
-        return { color, icon };
-      }
-      getPreviewEl() {
-        if (this.previewEl) {
-          return this.previewEl;
-        }
-        const previewEl = document.body.createDiv({
-          cls: "callout custom-callout-context-menu-preview"
-        });
-        previewEl.style.display = "none";
-        this.previewEl = previewEl;
-        return previewEl;
       }
     };
     module2.exports = {
@@ -749,12 +721,15 @@ var require_callout_picker_modal = __commonJS({
         }
         let selectedItemNode = null;
         let lastAppliedQuery = null;
+        let activeQuery = "";
+        let scoreByItem = /* @__PURE__ */ new Map();
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
         const compareVisibleItems = (a, b) => {
-          const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
-          const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
-          if (aOrder !== bOrder) {
-            return aOrder - bOrder;
+          if (activeQuery.length > 0) {
+            const scoreDelta = (scoreByItem.get(b) || 0) - (scoreByItem.get(a) || 0);
+            if (scoreDelta !== 0) {
+              return scoreDelta;
+            }
           }
           return this.controller.compareMenuItems(a, b);
         };
@@ -807,14 +782,16 @@ var require_callout_picker_modal = __commonJS({
         const applyFilter = () => {
           const query = searchInput.value.trim().toLowerCase();
           const queryChanged = query !== lastAppliedQuery;
+          activeQuery = query;
           const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
+          scoreByItem = /* @__PURE__ */ new Map();
           let bestMatch = null;
           for (const itemNode of menuItems) {
             itemNode.removeClass("is-search-top-result");
             const score = this.controller.getMenuItemSearchScore(itemNode, query);
+            scoreByItem.set(itemNode, score);
             const isVisible = score > 0;
             itemNode.toggleClass("is-search-hidden", !isVisible);
-            itemNode.style.order = query.length === 0 ? itemNode.getAttribute("data-default-order") || "0" : String(1e5 - score);
             if (!isVisible) {
               continue;
             }
@@ -823,7 +800,12 @@ var require_callout_picker_modal = __commonJS({
             }
           }
           for (const block of columnBlocks) {
-            const visibleItems2 = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+            const items = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"));
+            items.sort(compareVisibleItems);
+            for (const itemNode of items) {
+              block.section.appendChild(itemNode);
+            }
+            const visibleItems2 = items.filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
             block.wrapper.toggleClass("is-empty", visibleItems2.length === 0);
           }
           for (const rowEntry of rowEntries) {
@@ -891,17 +873,15 @@ var require_callout_picker_modal = __commonJS({
         itemNode.setAttribute("data-callout-concept", option.concept || "");
         itemNode.setAttribute("data-callout-search", this.controller.buildSearchText(option));
         itemNode.setAttribute("data-default-order", String(defaultOrder));
-        itemNode.style.setProperty("--custom-callout-context-color", option.color);
-        const iconEl = itemNode.createDiv({ cls: "menu-item-icon" });
-        if (option.icon) {
-          setIcon(iconEl, option.icon);
-        }
-        itemNode.createDiv({
+        const appearanceEl = itemNode.createDiv({ cls: "custom-callout-context-menu-appearance callout" });
+        appearanceEl.setAttribute("data-callout", option.appearanceId || option.id);
+        appearanceEl.createDiv({ cls: "custom-callout-context-menu-swatch" });
+        appearanceEl.createDiv({
           cls: "menu-item-title",
           text: this.controller.formatTitle(option.id)
         });
         if (this.controller.isOptionActive(option, this.activeType)) {
-          const checkEl = itemNode.createDiv({ cls: "menu-item-icon menu-item-icon-end" });
+          const checkEl = appearanceEl.createDiv({ cls: "menu-item-icon menu-item-icon-end" });
           setIcon(checkEl, "check");
         }
         itemNode.addEventListener("click", () => {
@@ -916,10 +896,10 @@ var require_callout_picker_modal = __commonJS({
         itemNode.setAttribute("data-callout-custom", "false");
         itemNode.setAttribute("data-callout-search", "none clear remove");
         itemNode.setAttribute("data-default-order", String(defaultOrder));
-        itemNode.style.setProperty("--custom-callout-context-color", "128, 128, 128");
-        const iconEl = itemNode.createDiv({ cls: "menu-item-icon" });
+        const appearanceEl = itemNode.createDiv({ cls: "custom-callout-context-menu-appearance" });
+        const iconEl = appearanceEl.createDiv({ cls: "menu-item-icon" });
         setIcon(iconEl, "eraser");
-        itemNode.createDiv({ cls: "menu-item-title", text: "None" });
+        appearanceEl.createDiv({ cls: "menu-item-title", text: "None" });
         itemNode.addEventListener("click", () => {
           this.onClear();
           this.close();

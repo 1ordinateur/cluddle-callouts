@@ -5,7 +5,6 @@ class CalloutRegistry {
         this.app = app;
         this.customCallouts = [];
         this.aliasToPrimary = new Map();
-        this.previewEl = null;
     }
 
     async refresh() {
@@ -18,7 +17,7 @@ class CalloutRegistry {
             const appearance = JSON.parse(appearanceRaw);
             enabledSnippets = appearance.enabledCssSnippets || [];
         } catch (error) {
-            console.error("custom-callout-context-menu: failed to read appearance.json", error);
+            enabledSnippets = [];
         }
 
         const customCallouts = [];
@@ -92,7 +91,6 @@ class CalloutRegistry {
     }
 
     buildMenuOptions(id, isCustom) {
-        const appearance = this.getCalloutAppearance(id);
         const customCallout = isCustom ? this.customCallouts.find((callout) => callout.id === id) : null;
 
         if (!customCallout || !Array.isArray(customCallout.groups) || customCallout.groups.length === 0) {
@@ -104,8 +102,7 @@ class CalloutRegistry {
                 aliases: customCallout ? [customCallout.id, ...customCallout.aliases] : [],
                 groupAliases: [id, ...(customCallout ? customCallout.aliases : [])],
                 concept: customCallout ? customCallout.concept : id,
-                color: appearance.color,
-                icon: appearance.icon
+                appearanceId: id
             }];
         }
 
@@ -114,13 +111,12 @@ class CalloutRegistry {
             return {
                 key: `custom:${id}:${group.name}`,
                 id: insertId,
+                appearanceId: id,
                 group: group.name,
                 isCustom: true,
                 aliases: [customCallout.id, ...customCallout.aliases],
                 groupAliases: group.aliases,
-                concept: customCallout.concept,
-                color: appearance.color,
-                icon: appearance.icon
+                concept: customCallout.concept
             };
         });
     }
@@ -136,12 +132,7 @@ class CalloutRegistry {
         return activeAliases.includes(activeType);
     }
 
-    unload() {
-        if (this.previewEl) {
-            this.previewEl.remove();
-            this.previewEl = null;
-        }
-    }
+    unload() {}
 
     parseCalloutBlocks(css, snippetId) {
         const blocks = [];
@@ -211,30 +202,6 @@ class CalloutRegistry {
             .filter((entry) => entry.length > 0);
     }
 
-    getCalloutAppearance(id) {
-        const previewEl = this.getPreviewEl();
-        previewEl.setAttribute("data-callout", id);
-
-        const styles = window.getComputedStyle(previewEl);
-        const color = styles.getPropertyValue("--callout-color").trim() || "128, 128, 128";
-        const rawIcon = styles.getPropertyValue("--callout-icon").trim();
-        const icon = rawIcon.startsWith("lucide-") ? rawIcon.slice("lucide-".length) : rawIcon;
-
-        return { color, icon };
-    }
-
-    getPreviewEl() {
-        if (this.previewEl) {
-            return this.previewEl;
-        }
-
-        const previewEl = document.body.createDiv({
-            cls: "callout custom-callout-context-menu-preview"
-        });
-        previewEl.style.display = "none";
-        this.previewEl = previewEl;
-        return previewEl;
-    }
 }
 
 module.exports = {
