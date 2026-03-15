@@ -440,15 +440,59 @@ var require_picker_layout = __commonJS({
             sectionKey: section.key,
             label: section.label,
             options: chunk,
-            columnIndex: chunkIndex
+            columnIndex: chunkIndex,
+            showLabel: chunkIndex === 0
           });
         });
       }
       return columnBlocks;
     }
+    function chunkBlocks(blocks, maxColumns) {
+      const normalizedMax = Math.max(1, Number(maxColumns) || 1);
+      const rows = [];
+      for (let index = 0; index < blocks.length; index += normalizedMax) {
+        rows.push(blocks.slice(index, index + normalizedMax));
+      }
+      return rows;
+    }
+    function buildPickerRows(options, maxItemsPerColumn, maxColumns, includeUtility = true) {
+      const customBlocks = [];
+      const builtinBlocks = [];
+      const utilityBlocks = [];
+      for (const block of buildPickerColumnBlocks(options, maxItemsPerColumn, includeUtility)) {
+        if (block.sectionKey === "builtin") {
+          builtinBlocks.push(block);
+          continue;
+        }
+        if (block.sectionKey === "utility") {
+          utilityBlocks.push(block);
+          continue;
+        }
+        customBlocks.push(block);
+      }
+      const rows = [];
+      chunkBlocks(customBlocks, maxColumns).forEach((blocks, rowIndex) => {
+        rows.push({
+          key: `custom-row:${rowIndex}`,
+          kind: "custom",
+          blocks
+        });
+      });
+      const systemBlocks = [...builtinBlocks, ...utilityBlocks];
+      chunkBlocks(systemBlocks, maxColumns).forEach((blocks, rowIndex) => {
+        rows.push({
+          key: `system-row:${rowIndex}`,
+          kind: blocks.some((block) => block.sectionKey === "builtin") ? "builtin" : "utility",
+          blocks
+        });
+      });
+      return rows;
+    }
     module2.exports = {
+      buildPickerRows,
       buildPickerColumnBlocks,
       buildPickerSections,
+      chunkBlocks,
       chunkOptions,
       getSectionDescriptor
     };
@@ -460,7 +504,7 @@ var require_callout_picker_modal = __commonJS({
   "src/callout-picker-modal.js"(exports2, module2) {
     var { Modal, setIcon } = require("obsidian");
     var { getRelativeIndex } = require_navigation_utils();
-    var { buildPickerColumnBlocks } = require_picker_layout();
+    var { buildPickerRows } = require_picker_layout();
     var CalloutPickerModal = class extends Modal {
       constructor(app, options) {
         super(app);
@@ -487,34 +531,52 @@ var require_callout_picker_modal = __commonJS({
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
         let itemIndex = 0;
         const columnBlocks = [];
-        for (const block of buildPickerColumnBlocks(this.options, this.controller.getMaxRowsPerColumn())) {
-          const wrapper = content.createDiv({
-            cls: "custom-callout-context-menu-group",
-            attr: {
-              "data-section": block.sectionKey,
-              "data-column-index": String(block.columnIndex)
+        const rowEntries = [];
+        for (const row of buildPickerRows(
+          this.options,
+          this.controller.getMaxRowsPerColumn(),
+          this.controller.getMaxGroupColumns()
+        )) {
+          const rowEl = content.createDiv({
+            cls: "custom-callout-context-menu-row",
+            attr: { "data-row-kind": row.kind }
+          });
+          const rowEntry = { rowEl, blocks: [] };
+          for (const block of row.blocks) {
+            const wrapper = rowEl.createDiv({
+              cls: "custom-callout-context-menu-group",
+              attr: {
+                "data-section": block.sectionKey,
+                "data-column-index": String(block.columnIndex)
+              }
+            });
+            wrapper.toggleClass("is-label-hidden", !block.showLabel);
+            if (block.showLabel) {
+              wrapper.createDiv({
+                cls: "custom-callout-context-menu-group-label",
+                text: this.controller.formatTitle(block.label || block.sectionKey)
+              });
             }
-          });
-          wrapper.createDiv({
-            cls: "custom-callout-context-menu-group-label",
-            text: this.controller.formatTitle(block.label || block.sectionKey)
-          });
-          const section = wrapper.createDiv({
-            cls: "custom-callout-context-menu-section",
-            attr: { "data-section": block.sectionKey }
-          });
-          if (block.sectionKey === "utility") {
-            const itemNode = this.createUtilityNode(itemIndex);
-            itemIndex += 1;
-            section.appendChild(itemNode);
-          } else {
-            for (const option of block.options) {
-              const itemNode = this.createItemNode(option, itemIndex);
+            const section = wrapper.createDiv({
+              cls: "custom-callout-context-menu-section",
+              attr: { "data-section": block.sectionKey }
+            });
+            if (block.sectionKey === "utility") {
+              const itemNode = this.createUtilityNode(itemIndex);
               itemIndex += 1;
               section.appendChild(itemNode);
+            } else {
+              for (const option of block.options) {
+                const itemNode = this.createItemNode(option, itemIndex);
+                itemIndex += 1;
+                section.appendChild(itemNode);
+              }
             }
+            const blockEntry = { wrapper, section };
+            columnBlocks.push(blockEntry);
+            rowEntry.blocks.push(blockEntry);
           }
-          columnBlocks.push({ wrapper, section });
+          rowEntries.push(rowEntry);
         }
         let selectedItemNode = null;
         const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
@@ -569,6 +631,9 @@ var require_callout_picker_modal = __commonJS({
           for (const block of columnBlocks) {
             const visibleItems2 = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item")).filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
             block.wrapper.toggleClass("is-empty", visibleItems2.length === 0);
+          }
+          for (const rowEntry of rowEntries) {
+            rowEntry.rowEl.toggleClass("is-empty", rowEntry.blocks.every((block) => block.wrapper.hasClass("is-empty")));
           }
           const visibleItems = getVisibleMenuItems();
           if (visibleItems.length === 0) {

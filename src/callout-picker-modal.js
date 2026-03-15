@@ -1,6 +1,6 @@
 const { Modal, setIcon } = require("obsidian");
 const { getRelativeIndex } = require("./navigation-utils");
-const { buildPickerColumnBlocks } = require("./picker-layout");
+const { buildPickerRows } = require("./picker-layout");
 
 class CalloutPickerModal extends Modal {
     constructor(app, options) {
@@ -33,35 +33,58 @@ class CalloutPickerModal extends Modal {
 
         let itemIndex = 0;
         const columnBlocks = [];
-        for (const block of buildPickerColumnBlocks(this.options, this.controller.getMaxRowsPerColumn())) {
-            const wrapper = content.createDiv({
-                cls: "custom-callout-context-menu-group",
-                attr: {
-                    "data-section": block.sectionKey,
-                    "data-column-index": String(block.columnIndex)
-                }
+        const rowEntries = [];
+        for (const row of buildPickerRows(
+            this.options,
+            this.controller.getMaxRowsPerColumn(),
+            this.controller.getMaxGroupColumns()
+        )) {
+            const rowEl = content.createDiv({
+                cls: "custom-callout-context-menu-row",
+                attr: { "data-row-kind": row.kind }
             });
-            wrapper.createDiv({
-                cls: "custom-callout-context-menu-group-label",
-                text: this.controller.formatTitle(block.label || block.sectionKey)
-            });
-            const section = wrapper.createDiv({
-                cls: "custom-callout-context-menu-section",
-                attr: { "data-section": block.sectionKey }
-            });
+            const rowEntry = { rowEl, blocks: [] };
 
-            if (block.sectionKey === "utility") {
-                const itemNode = this.createUtilityNode(itemIndex);
-                itemIndex += 1;
-                section.appendChild(itemNode);
-            } else {
-                for (const option of block.options) {
-                    const itemNode = this.createItemNode(option, itemIndex);
+            for (const block of row.blocks) {
+                const wrapper = rowEl.createDiv({
+                    cls: "custom-callout-context-menu-group",
+                    attr: {
+                        "data-section": block.sectionKey,
+                        "data-column-index": String(block.columnIndex)
+                    }
+                });
+
+                wrapper.toggleClass("is-label-hidden", !block.showLabel);
+                if (block.showLabel) {
+                    wrapper.createDiv({
+                        cls: "custom-callout-context-menu-group-label",
+                        text: this.controller.formatTitle(block.label || block.sectionKey)
+                    });
+                }
+
+                const section = wrapper.createDiv({
+                    cls: "custom-callout-context-menu-section",
+                    attr: { "data-section": block.sectionKey }
+                });
+
+                if (block.sectionKey === "utility") {
+                    const itemNode = this.createUtilityNode(itemIndex);
                     itemIndex += 1;
                     section.appendChild(itemNode);
+                } else {
+                    for (const option of block.options) {
+                        const itemNode = this.createItemNode(option, itemIndex);
+                        itemIndex += 1;
+                        section.appendChild(itemNode);
+                    }
                 }
+
+                const blockEntry = { wrapper, section };
+                columnBlocks.push(blockEntry);
+                rowEntry.blocks.push(blockEntry);
             }
-            columnBlocks.push({ wrapper, section });
+
+            rowEntries.push(rowEntry);
         }
 
         let selectedItemNode = null;
@@ -133,6 +156,10 @@ class CalloutPickerModal extends Modal {
                 const visibleItems = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
                     .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
                 block.wrapper.toggleClass("is-empty", visibleItems.length === 0);
+            }
+
+            for (const rowEntry of rowEntries) {
+                rowEntry.rowEl.toggleClass("is-empty", rowEntry.blocks.every((block) => block.wrapper.hasClass("is-empty")));
             }
 
             const visibleItems = getVisibleMenuItems();

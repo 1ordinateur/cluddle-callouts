@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+    buildPickerRows,
     buildPickerColumnBlocks,
     buildPickerSections,
     getSectionDescriptor
@@ -98,6 +99,71 @@ test("built-in callouts also spill into separate labeled columns", () => {
             { key: "builtin:column:0", label: "builtin", ids: ["note", "abstract"] },
             { key: "builtin:column:1", label: "builtin", ids: ["info"] },
             { key: "utility:column:0", label: "utility", ids: [] }
+        ]
+    );
+});
+
+test("built-ins start on a new row after custom groups and continuation columns hide duplicate labels", () => {
+    const rows = buildPickerRows([
+        { id: "alpha-one", isCustom: true, group: "alpha" },
+        { id: "alpha-two", isCustom: true, group: "alpha" },
+        { id: "beta-one", isCustom: true, group: "beta" },
+        { id: "note", isCustom: false },
+        { id: "abstract", isCustom: false },
+        { id: "info", isCustom: false }
+    ], 2, 3);
+
+    assert.deepEqual(
+        rows.map((row) => ({
+            kind: row.kind,
+            sections: row.blocks.map((block) => ({
+                key: block.key,
+                sectionKey: block.sectionKey,
+                showLabel: block.showLabel,
+                ids: block.options.map((option) => option.id)
+            }))
+        })),
+        [
+            {
+                kind: "custom",
+                sections: [
+                    {
+                        key: "custom:alpha:column:0",
+                        sectionKey: "custom:alpha",
+                        showLabel: true,
+                        ids: ["alpha-one", "alpha-two"]
+                    },
+                    {
+                        key: "custom:beta:column:0",
+                        sectionKey: "custom:beta",
+                        showLabel: true,
+                        ids: ["beta-one"]
+                    }
+                ]
+            },
+            {
+                kind: "builtin",
+                sections: [
+                    {
+                        key: "builtin:column:0",
+                        sectionKey: "builtin",
+                        showLabel: true,
+                        ids: ["note", "abstract"]
+                    },
+                    {
+                        key: "builtin:column:1",
+                        sectionKey: "builtin",
+                        showLabel: false,
+                        ids: ["info"]
+                    },
+                    {
+                        key: "utility:column:0",
+                        sectionKey: "utility",
+                        showLabel: true,
+                        ids: []
+                    }
+                ]
+            }
         ]
     );
 });

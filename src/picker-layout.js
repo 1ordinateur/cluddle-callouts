@@ -76,7 +76,8 @@ function buildPickerColumnBlocks(options, maxItemsPerColumn, includeUtility = tr
                 sectionKey: section.key,
                 label: section.label,
                 options: chunk,
-                columnIndex: chunkIndex
+                columnIndex: chunkIndex,
+                showLabel: chunkIndex === 0
             });
         });
     }
@@ -84,9 +85,62 @@ function buildPickerColumnBlocks(options, maxItemsPerColumn, includeUtility = tr
     return columnBlocks;
 }
 
+function chunkBlocks(blocks, maxColumns) {
+    const normalizedMax = Math.max(1, Number(maxColumns) || 1);
+    const rows = [];
+
+    for (let index = 0; index < blocks.length; index += normalizedMax) {
+        rows.push(blocks.slice(index, index + normalizedMax));
+    }
+
+    return rows;
+}
+
+function buildPickerRows(options, maxItemsPerColumn, maxColumns, includeUtility = true) {
+    const customBlocks = [];
+    const builtinBlocks = [];
+    const utilityBlocks = [];
+
+    for (const block of buildPickerColumnBlocks(options, maxItemsPerColumn, includeUtility)) {
+        if (block.sectionKey === "builtin") {
+            builtinBlocks.push(block);
+            continue;
+        }
+
+        if (block.sectionKey === "utility") {
+            utilityBlocks.push(block);
+            continue;
+        }
+
+        customBlocks.push(block);
+    }
+
+    const rows = [];
+    chunkBlocks(customBlocks, maxColumns).forEach((blocks, rowIndex) => {
+        rows.push({
+            key: `custom-row:${rowIndex}`,
+            kind: "custom",
+            blocks
+        });
+    });
+
+    const systemBlocks = [...builtinBlocks, ...utilityBlocks];
+    chunkBlocks(systemBlocks, maxColumns).forEach((blocks, rowIndex) => {
+        rows.push({
+            key: `system-row:${rowIndex}`,
+            kind: blocks.some((block) => block.sectionKey === "builtin") ? "builtin" : "utility",
+            blocks
+        });
+    });
+
+    return rows;
+}
+
 module.exports = {
+    buildPickerRows,
     buildPickerColumnBlocks,
     buildPickerSections,
+    chunkBlocks,
     chunkOptions,
     getSectionDescriptor
 };
