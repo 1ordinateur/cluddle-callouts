@@ -115,12 +115,13 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.15rem;
+    gap: 0.28rem;
     width: var(--custom-callout-column-width);
     min-width: var(--custom-callout-column-width);
     max-width: var(--custom-callout-column-width);
     min-height: 1.9rem;
     border-radius: 0.5rem;
+    padding-left: 0.12rem;
     padding-right: 0.15rem;
 }
 
