@@ -57,11 +57,13 @@ class CalloutPickerModal extends Modal {
                 });
 
                 wrapper.toggleClass("is-label-hidden", !block.showLabel);
-                if (block.showLabel) {
-                    wrapper.createDiv({
-                        cls: "custom-callout-context-menu-group-label",
-                        text: this.controller.formatTitle(block.label || block.sectionKey)
-                    });
+                const labelEl = wrapper.createDiv({
+                    cls: "custom-callout-context-menu-group-label",
+                    text: this.controller.formatTitle(block.label || block.sectionKey)
+                });
+                labelEl.toggleClass("is-placeholder", !block.showLabel);
+                if (!block.showLabel) {
+                    labelEl.setAttribute("aria-hidden", "true");
                 }
 
                 const section = wrapper.createDiv({
