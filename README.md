@@ -4,6 +4,10 @@ Cluddle Callouts is an Obsidian plugin that makes callouts easier to insert, swi
 
 It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets, using their configured colors and icons where available.
 
+## Example
+
+![Cluddle Callouts picker example](docs/readme-example.png)
+
 ## What The Plugin Does
 
 - Inserts a new callout at the cursor
@@ -18,7 +22,7 @@ It adds a searchable callout picker to the editor right-click menu and provides 
 1. Open a note in Obsidian.
 2. Right-click in the editor and choose the callout action, or run the `Open callout picker` command.
 3. Search for the callout you want.
-4. Use `ArrowUp` and `ArrowDown` to move the selected result if needed.
+4. Use `ArrowUp`, `ArrowDown`, `ArrowLeft`, and `ArrowRight` to move around the picker if needed.
 5. Press `Enter` to apply the selected result, or click an item directly.
 
 If your cursor is already inside a callout, the picker acts as a "change callout type" tool and also exposes a remove action from the editor context menu.
@@ -33,6 +37,8 @@ The plugin includes settings for:
 
 - Maximum rows per picker column
 - Total picker columns
+- Picker width
+- Picker height
 - Whether custom callouts should rank above built-in ones in search
 
 ## What Ships
