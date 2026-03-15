@@ -1,5 +1,6 @@
 const { Modal, setIcon } = require("obsidian");
 const { GroupedSectionContainer } = require("./grouped-section-container");
+const { buildPickerSections } = require("./picker-layout");
 
 class CalloutPickerModal extends Modal {
     constructor(app, options) {
@@ -40,13 +41,12 @@ class CalloutPickerModal extends Modal {
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
 
         let itemIndex = 0;
-        for (const option of this.options) {
-            const itemNode = this.createItemNode(option, itemIndex);
-            itemIndex += 1;
-            if (option.isCustom) {
-                sections.getSectionEntry(option.group || "custom", option.group || "custom").section.appendChild(itemNode);
-            } else {
-                sections.getSectionEntry("builtin", "builtin").section.appendChild(itemNode);
+        for (const sectionInfo of buildPickerSections(this.options, false)) {
+            const sectionEntry = sections.getSectionEntry(sectionInfo.key, sectionInfo.label);
+            for (const option of sectionInfo.options) {
+                const itemNode = this.createItemNode(option, itemIndex);
+                itemIndex += 1;
+                sectionEntry.section.appendChild(itemNode);
             }
         }
 

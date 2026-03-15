@@ -396,11 +396,64 @@ var require_grouped_section_container = __commonJS({
   }
 });
 
+// src/picker-layout.js
+var require_picker_layout = __commonJS({
+  "src/picker-layout.js"(exports2, module2) {
+    function getSectionDescriptor(option) {
+      if (!option) {
+        return null;
+      }
+      if (option.id === "none") {
+        return { key: "utility", label: "utility" };
+      }
+      if (option.isCustom) {
+        const groupName = option.group || "custom";
+        return { key: groupName, label: groupName };
+      }
+      return { key: "builtin", label: "builtin" };
+    }
+    function buildPickerSections(options, includeUtility = true) {
+      const sections = [];
+      const sectionMap = /* @__PURE__ */ new Map();
+      const ensureSection = (descriptor) => {
+        if (!descriptor) {
+          return null;
+        }
+        if (!sectionMap.has(descriptor.key)) {
+          const section = {
+            key: descriptor.key,
+            label: descriptor.label,
+            options: []
+          };
+          sectionMap.set(descriptor.key, section);
+          sections.push(section);
+        }
+        return sectionMap.get(descriptor.key);
+      };
+      for (const option of options || []) {
+        const section = ensureSection(getSectionDescriptor(option));
+        if (section) {
+          section.options.push(option);
+        }
+      }
+      if (includeUtility) {
+        ensureSection({ key: "utility", label: "utility" });
+      }
+      return sections;
+    }
+    module2.exports = {
+      buildPickerSections,
+      getSectionDescriptor
+    };
+  }
+});
+
 // src/callout-picker-modal.js
 var require_callout_picker_modal = __commonJS({
   "src/callout-picker-modal.js"(exports2, module2) {
     var { Modal, setIcon } = require("obsidian");
     var { GroupedSectionContainer } = require_grouped_section_container();
+    var { buildPickerSections } = require_picker_layout();
     var CalloutPickerModal = class extends Modal {
       constructor(app, options) {
         super(app);
@@ -435,13 +488,12 @@ var require_callout_picker_modal = __commonJS({
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
         let itemIndex = 0;
-        for (const option of this.options) {
-          const itemNode = this.createItemNode(option, itemIndex);
-          itemIndex += 1;
-          if (option.isCustom) {
-            sections.getSectionEntry(option.group || "custom", option.group || "custom").section.appendChild(itemNode);
-          } else {
-            sections.getSectionEntry("builtin", "builtin").section.appendChild(itemNode);
+        for (const sectionInfo of buildPickerSections(this.options, false)) {
+          const sectionEntry = sections.getSectionEntry(sectionInfo.key, sectionInfo.label);
+          for (const option of sectionInfo.options) {
+            const itemNode = this.createItemNode(option, itemIndex);
+            itemIndex += 1;
+            sectionEntry.section.appendChild(itemNode);
           }
         }
         sections.getSectionEntry("utility", "utility").section.appendChild(this.createUtilityNode(itemIndex));
