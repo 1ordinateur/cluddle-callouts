@@ -9,7 +9,7 @@ function getSectionDescriptor(option) {
 
     if (option.isCustom) {
         const groupName = option.group || "custom";
-        return { key: groupName, label: groupName };
+        return { key: `custom:${groupName}`, label: groupName };
     }
 
     return { key: "builtin", label: "builtin" };

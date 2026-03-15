@@ -408,7 +408,7 @@ var require_picker_layout = __commonJS({
       }
       if (option.isCustom) {
         const groupName = option.group || "custom";
-        return { key: groupName, label: groupName };
+        return { key: `custom:${groupName}`, label: groupName };
       }
       return { key: "builtin", label: "builtin" };
     }
