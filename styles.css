@@ -40,7 +40,7 @@
 
 .custom-callout-context-menu-content {
     display: grid;
-    grid-template-columns: repeat(var(--custom-callout-group-columns, 3), minmax(0, max-content));
+    grid-template-columns: repeat(var(--custom-callout-group-columns, 3), minmax(10.5rem, max-content));
     align-items: start;
     justify-content: start;
     gap: 0.55rem;
@@ -53,8 +53,9 @@
     flex-direction: column;
     gap: 0.25rem;
     align-self: start;
-    width: max-content;
-    max-width: 100%;
+    width: 10.5rem;
+    min-width: 10.5rem;
+    max-width: 10.5rem;
 }
 
 .custom-callout-context-menu-group-label {
@@ -64,6 +65,8 @@
     text-transform: uppercase;
     color: var(--text-muted);
     padding: 0 0.3rem;
+    width: 10.5rem;
+    box-sizing: border-box;
 }
 
 .custom-callout-context-menu-group.is-empty {
@@ -71,15 +74,12 @@
 }
 
 .custom-callout-context-menu-section {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(10.5rem, max-content);
-    grid-template-rows: repeat(var(--custom-callout-max-rows, 8), minmax(0, auto));
-    align-content: start;
-    justify-content: start;
-    gap: 0.2rem 0.15rem;
-    width: max-content;
-    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 10.5rem;
+    min-width: 10.5rem;
+    max-width: 10.5rem;
 }
 
 .custom-callout-context-menu-group[data-section="builtin"],

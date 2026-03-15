@@ -29,8 +29,8 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Metadata group columns")
-            .setDesc("Controls how many metadata groups tile across before the picker wraps to a new row of groups.")
+            .setName("Total columns")
+            .setDesc("Controls how many columns the picker shows before it wraps to a new row. Each metadata type keeps its own column.")
             .addText((text) => {
                 text
                     .setPlaceholder(String(DEFAULT_SETTINGS.maxGroupColumns))

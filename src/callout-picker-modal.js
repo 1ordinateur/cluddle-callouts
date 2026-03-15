@@ -1,6 +1,6 @@
 const { Modal, setIcon } = require("obsidian");
-const { GroupedSectionContainer } = require("./grouped-section-container");
-const { buildPickerSections } = require("./picker-layout");
+const { getRelativeIndex } = require("./navigation-utils");
+const { buildPickerColumnBlocks } = require("./picker-layout");
 
 class CalloutPickerModal extends Modal {
     constructor(app, options) {
@@ -27,30 +27,80 @@ class CalloutPickerModal extends Modal {
         });
 
         const content = shell.createDiv({ cls: "custom-callout-context-menu-content" });
-        const sections = new GroupedSectionContainer(
-            content,
-            (parent, sectionKey, label) => {
-                const wrapper = parent.createDiv({ cls: "custom-callout-context-menu-group", attr: { "data-section": sectionKey } });
-                wrapper.createDiv({ cls: "custom-callout-context-menu-group-label", text: this.controller.formatTitle(label || sectionKey) });
-                return wrapper;
-            },
-            (wrapper, sectionKey) => wrapper.createDiv({ cls: "custom-callout-context-menu-section", attr: { "data-section": sectionKey } })
-        );
 
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
         this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
 
         let itemIndex = 0;
-        for (const sectionInfo of buildPickerSections(this.options, false)) {
-            const sectionEntry = sections.getSectionEntry(sectionInfo.key, sectionInfo.label);
-            for (const option of sectionInfo.options) {
-                const itemNode = this.createItemNode(option, itemIndex);
+        const columnBlocks = [];
+        for (const block of buildPickerColumnBlocks(this.options, this.controller.getMaxRowsPerColumn())) {
+            const wrapper = content.createDiv({
+                cls: "custom-callout-context-menu-group",
+                attr: {
+                    "data-section": block.sectionKey,
+                    "data-column-index": String(block.columnIndex)
+                }
+            });
+            wrapper.createDiv({
+                cls: "custom-callout-context-menu-group-label",
+                text: this.controller.formatTitle(block.label || block.sectionKey)
+            });
+            const section = wrapper.createDiv({
+                cls: "custom-callout-context-menu-section",
+                attr: { "data-section": block.sectionKey }
+            });
+
+            if (block.sectionKey === "utility") {
+                const itemNode = this.createUtilityNode(itemIndex);
                 itemIndex += 1;
-                sectionEntry.section.appendChild(itemNode);
+                section.appendChild(itemNode);
+            } else {
+                for (const option of block.options) {
+                    const itemNode = this.createItemNode(option, itemIndex);
+                    itemIndex += 1;
+                    section.appendChild(itemNode);
+                }
             }
+            columnBlocks.push({ wrapper, section });
         }
 
-        sections.getSectionEntry("utility", "utility").section.appendChild(this.createUtilityNode(itemIndex));
+        let selectedItemNode = null;
+        const getVisibleMenuItems = () => Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"))
+            .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+        const compareVisibleItems = (a, b) => {
+            const aOrder = Number(a.style.order || a.getAttribute("data-default-order") || "0");
+            const bOrder = Number(b.style.order || b.getAttribute("data-default-order") || "0");
+            if (aOrder !== bOrder) {
+                return aOrder - bOrder;
+            }
+            return this.controller.compareMenuItems(a, b);
+        };
+        const setSelectedItem = (itemNode) => {
+            const menuItems = Array.from(this.contentEl.querySelectorAll(".custom-callout-context-menu-item"));
+            for (const currentItem of menuItems) {
+                currentItem.removeClass("is-search-top-result");
+            }
+
+            selectedItemNode = itemNode || null;
+            if (!selectedItemNode) {
+                return;
+            }
+
+            selectedItemNode.addClass("is-search-top-result");
+            selectedItemNode.scrollIntoView({ block: "nearest", inline: "nearest" });
+        };
+        const moveSelection = (delta) => {
+            const visibleItems = getVisibleMenuItems().sort(compareVisibleItems);
+            if (visibleItems.length === 0) {
+                return;
+            }
+
+            const currentIndex = selectedItemNode ? visibleItems.indexOf(selectedItemNode) : -1;
+            const nextIndex = getRelativeIndex(currentIndex, visibleItems.length, delta);
+            if (nextIndex >= 0) {
+                setSelectedItem(visibleItems[nextIndex]);
+            }
+        };
 
         const applyFilter = () => {
             const query = searchInput.value.trim().toLowerCase();
@@ -79,20 +129,44 @@ class CalloutPickerModal extends Modal {
                 }
             }
 
-            sections.toggleEmptySections(".custom-callout-context-menu-item", "is-search-hidden");
-
-            if (bestMatch) {
-                bestMatch.itemNode.addClass("is-search-top-result");
+            for (const block of columnBlocks) {
+                const visibleItems = Array.from(block.section.querySelectorAll(".custom-callout-context-menu-item"))
+                    .filter((itemNode) => !itemNode.hasClass("is-search-hidden"));
+                block.wrapper.toggleClass("is-empty", visibleItems.length === 0);
             }
+
+            const visibleItems = getVisibleMenuItems();
+            if (visibleItems.length === 0) {
+                setSelectedItem(null);
+                return;
+            }
+
+            if (selectedItemNode && visibleItems.includes(selectedItemNode)) {
+                setSelectedItem(selectedItemNode);
+                return;
+            }
+
+            setSelectedItem(bestMatch ? bestMatch.itemNode : visibleItems.sort(compareVisibleItems)[0]);
         };
 
         searchInput.addEventListener("input", applyFilter);
         searchInput.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                moveSelection(1);
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                moveSelection(-1);
+                return;
+            }
+
             if (event.key === "Enter") {
-                const bestMatch = this.contentEl.querySelector(".custom-callout-context-menu-item.is-search-top-result");
-                if (bestMatch) {
+                if (selectedItemNode) {
                     event.preventDefault();
-                    bestMatch.click();
+                    selectedItemNode.click();
                 }
                 return;
             }

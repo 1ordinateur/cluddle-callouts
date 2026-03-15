@@ -51,7 +51,42 @@ function buildPickerSections(options, includeUtility = true) {
     return sections;
 }
 
+function chunkOptions(options, maxItemsPerColumn) {
+    const normalizedMax = Math.max(1, Number(maxItemsPerColumn) || 1);
+    const chunks = [];
+
+    for (let index = 0; index < options.length; index += normalizedMax) {
+        chunks.push(options.slice(index, index + normalizedMax));
+    }
+
+    return chunks;
+}
+
+function buildPickerColumnBlocks(options, maxItemsPerColumn, includeUtility = true) {
+    const columnBlocks = [];
+
+    for (const section of buildPickerSections(options, includeUtility)) {
+        const chunks = section.options.length > 0
+            ? chunkOptions(section.options, maxItemsPerColumn)
+            : [[]];
+
+        chunks.forEach((chunk, chunkIndex) => {
+            columnBlocks.push({
+                key: `${section.key}:column:${chunkIndex}`,
+                sectionKey: section.key,
+                label: section.label,
+                options: chunk,
+                columnIndex: chunkIndex
+            });
+        });
+    }
+
+    return columnBlocks;
+}
+
 module.exports = {
+    buildPickerColumnBlocks,
     buildPickerSections,
+    chunkOptions,
     getSectionDescriptor
 };
