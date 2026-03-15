@@ -37,6 +37,7 @@ class CalloutPickerModal extends Modal {
         );
 
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
+        this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
 
         let itemIndex = 0;
         for (const option of this.options) {

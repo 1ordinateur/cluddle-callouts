@@ -39,8 +39,10 @@
 }
 
 .custom-callout-context-menu-content {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(var(--custom-callout-group-columns, 3), minmax(0, max-content));
+    align-items: start;
+    justify-content: start;
     gap: 0.55rem;
     width: max-content;
     max-width: 100%;
@@ -50,6 +52,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    align-self: start;
+    width: max-content;
+    max-width: 100%;
 }
 
 .custom-callout-context-menu-group-label {
@@ -79,12 +84,18 @@
 
 .custom-callout-context-menu-group[data-section="builtin"],
 .custom-callout-context-menu-group[data-section="utility"] {
-    padding-top: 0.4rem;
-    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 0;
+    border-top: none;
 }
 
 .custom-callout-context-menu-group[data-section="utility"] {
-    border-top-style: dashed;
+    border-top: 1px dashed var(--background-modifier-border);
+    padding-top: 0.4rem;
+}
+
+.custom-callout-context-menu-group[data-section="builtin"] {
+    border-top: 1px solid var(--background-modifier-border);
+    padding-top: 0.4rem;
 }
 
 .custom-callout-context-menu-item {

@@ -3,6 +3,7 @@ const { DEFAULT_SETTINGS } = require("./constants");
 const { CalloutRegistry } = require("./callout-registry");
 const { EditorCalloutService } = require("./editor-callout-service");
 const { CalloutMenuController } = require("./callout-menu-controller");
+const { clampRowsPerColumn, clampGroupColumns } = require("./layout-settings");
 const { CustomCalloutContextMenuSettingTab } = require("./settings-tab");
 
 module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
@@ -16,6 +17,7 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             registry: this.registry,
             editorService: this.editorService,
             getMaxRowsPerColumn: () => this.getMaxRowsPerColumn(),
+            getMaxGroupColumns: () => this.getMaxGroupColumns(),
             preferCustomInSearch: () => this.preferCustomInSearch()
         });
 
@@ -48,11 +50,11 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
     }
 
     getMaxRowsPerColumn() {
-        const value = Number(this.settings.maxRowsPerColumn);
-        if (!Number.isFinite(value)) {
-            return DEFAULT_SETTINGS.maxRowsPerColumn;
-        }
-        return Math.min(24, Math.max(1, Math.round(value)));
+        return clampRowsPerColumn(this.settings.maxRowsPerColumn, DEFAULT_SETTINGS.maxRowsPerColumn);
+    }
+
+    getMaxGroupColumns() {
+        return clampGroupColumns(this.settings.maxGroupColumns, DEFAULT_SETTINGS.maxGroupColumns);
     }
 
     preferCustomInSearch() {

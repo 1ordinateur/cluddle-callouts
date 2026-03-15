@@ -1,5 +1,6 @@
 const { PluginSettingTab, Setting } = require("obsidian");
 const { DEFAULT_SETTINGS } = require("./constants");
+const { clampRowsPerColumn, clampGroupColumns } = require("./layout-settings");
 
 class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
@@ -19,10 +20,26 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                     .setPlaceholder(String(DEFAULT_SETTINGS.maxRowsPerColumn))
                     .setValue(String(this.plugin.getMaxRowsPerColumn()))
                     .onChange(async (value) => {
-                        const parsed = Number(value);
-                        this.plugin.settings.maxRowsPerColumn = Number.isFinite(parsed)
-                            ? Math.min(24, Math.max(1, Math.round(parsed)))
-                            : DEFAULT_SETTINGS.maxRowsPerColumn;
+                        this.plugin.settings.maxRowsPerColumn = clampRowsPerColumn(
+                            value,
+                            DEFAULT_SETTINGS.maxRowsPerColumn
+                        );
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName("Metadata group columns")
+            .setDesc("Controls how many metadata groups tile across before the picker wraps to a new row of groups.")
+            .addText((text) => {
+                text
+                    .setPlaceholder(String(DEFAULT_SETTINGS.maxGroupColumns))
+                    .setValue(String(this.plugin.getMaxGroupColumns()))
+                    .onChange(async (value) => {
+                        this.plugin.settings.maxGroupColumns = clampGroupColumns(
+                            value,
+                            DEFAULT_SETTINGS.maxGroupColumns
+                        );
                         await this.plugin.savePluginSettings();
                     });
             });

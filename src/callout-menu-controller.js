@@ -7,6 +7,7 @@ class CalloutMenuController {
         this.registry = options.registry;
         this.editorService = options.editorService;
         this.getMaxRowsPerColumn = options.getMaxRowsPerColumn;
+        this.getMaxGroupColumns = options.getMaxGroupColumns;
         this.preferCustomInSearch = options.preferCustomInSearch;
     }
 

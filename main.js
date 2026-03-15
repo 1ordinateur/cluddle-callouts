@@ -25,6 +25,7 @@ var require_constants = __commonJS({
     ];
     var DEFAULT_SETTINGS2 = {
       maxRowsPerColumn: 8,
+      maxGroupColumns: 3,
       preferCustomInSearch: true
     };
     var GROUP_PROPERTY_PREFIX = "callout-group-";
@@ -432,6 +433,7 @@ var require_callout_picker_modal = __commonJS({
           (wrapper, sectionKey) => wrapper.createDiv({ cls: "custom-callout-context-menu-section", attr: { "data-section": sectionKey } })
         );
         this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
+        this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
         let itemIndex = 0;
         for (const option of this.options) {
           const itemNode = this.createItemNode(option, itemIndex);
@@ -617,6 +619,7 @@ var require_callout_menu_controller = __commonJS({
         this.registry = options.registry;
         this.editorService = options.editorService;
         this.getMaxRowsPerColumn = options.getMaxRowsPerColumn;
+        this.getMaxGroupColumns = options.getMaxGroupColumns;
         this.preferCustomInSearch = options.preferCustomInSearch;
       }
       unload() {
@@ -715,11 +718,40 @@ var require_callout_menu_controller = __commonJS({
   }
 });
 
+// src/layout-settings.js
+var require_layout_settings = __commonJS({
+  "src/layout-settings.js"(exports2, module2) {
+    var MAX_ROWS_PER_COLUMN = 24;
+    var MAX_GROUP_COLUMNS = 3;
+    function clampRowsPerColumn2(value, fallback) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return fallback;
+      }
+      return Math.min(MAX_ROWS_PER_COLUMN, Math.max(1, Math.round(parsed)));
+    }
+    function clampGroupColumns2(value, fallback) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) {
+        return fallback;
+      }
+      return Math.min(MAX_GROUP_COLUMNS, Math.max(1, Math.round(parsed)));
+    }
+    module2.exports = {
+      MAX_ROWS_PER_COLUMN,
+      MAX_GROUP_COLUMNS,
+      clampRowsPerColumn: clampRowsPerColumn2,
+      clampGroupColumns: clampGroupColumns2
+    };
+  }
+});
+
 // src/settings-tab.js
 var require_settings_tab = __commonJS({
   "src/settings-tab.js"(exports2, module2) {
     var { PluginSettingTab, Setting } = require("obsidian");
     var { DEFAULT_SETTINGS: DEFAULT_SETTINGS2 } = require_constants();
+    var { clampRowsPerColumn: clampRowsPerColumn2, clampGroupColumns: clampGroupColumns2 } = require_layout_settings();
     var CustomCalloutContextMenuSettingTab2 = class extends PluginSettingTab {
       constructor(app, plugin) {
         super(app, plugin);
@@ -730,8 +762,19 @@ var require_settings_tab = __commonJS({
         containerEl.empty();
         new Setting(containerEl).setName("Max rows per column").setDesc("Controls how many callout options appear before the picker starts a new column.").addText((text) => {
           text.setPlaceholder(String(DEFAULT_SETTINGS2.maxRowsPerColumn)).setValue(String(this.plugin.getMaxRowsPerColumn())).onChange(async (value) => {
-            const parsed = Number(value);
-            this.plugin.settings.maxRowsPerColumn = Number.isFinite(parsed) ? Math.min(24, Math.max(1, Math.round(parsed))) : DEFAULT_SETTINGS2.maxRowsPerColumn;
+            this.plugin.settings.maxRowsPerColumn = clampRowsPerColumn2(
+              value,
+              DEFAULT_SETTINGS2.maxRowsPerColumn
+            );
+            await this.plugin.savePluginSettings();
+          });
+        });
+        new Setting(containerEl).setName("Metadata group columns").setDesc("Controls how many metadata groups tile across before the picker wraps to a new row of groups.").addText((text) => {
+          text.setPlaceholder(String(DEFAULT_SETTINGS2.maxGroupColumns)).setValue(String(this.plugin.getMaxGroupColumns())).onChange(async (value) => {
+            this.plugin.settings.maxGroupColumns = clampGroupColumns2(
+              value,
+              DEFAULT_SETTINGS2.maxGroupColumns
+            );
             await this.plugin.savePluginSettings();
           });
         });
@@ -755,6 +798,7 @@ var { DEFAULT_SETTINGS } = require_constants();
 var { CalloutRegistry } = require_callout_registry();
 var { EditorCalloutService } = require_editor_callout_service();
 var { CalloutMenuController } = require_callout_menu_controller();
+var { clampRowsPerColumn, clampGroupColumns } = require_layout_settings();
 var { CustomCalloutContextMenuSettingTab } = require_settings_tab();
 module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
   async onload() {
@@ -766,6 +810,7 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
       registry: this.registry,
       editorService: this.editorService,
       getMaxRowsPerColumn: () => this.getMaxRowsPerColumn(),
+      getMaxGroupColumns: () => this.getMaxGroupColumns(),
       preferCustomInSearch: () => this.preferCustomInSearch()
     });
     await this.registry.refresh();
@@ -792,11 +837,10 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
     await this.saveData(this.settings);
   }
   getMaxRowsPerColumn() {
-    const value = Number(this.settings.maxRowsPerColumn);
-    if (!Number.isFinite(value)) {
-      return DEFAULT_SETTINGS.maxRowsPerColumn;
-    }
-    return Math.min(24, Math.max(1, Math.round(value)));
+    return clampRowsPerColumn(this.settings.maxRowsPerColumn, DEFAULT_SETTINGS.maxRowsPerColumn);
+  }
+  getMaxGroupColumns() {
+    return clampGroupColumns(this.settings.maxGroupColumns, DEFAULT_SETTINGS.maxGroupColumns);
   }
   preferCustomInSearch() {
     return this.settings.preferCustomInSearch !== false;

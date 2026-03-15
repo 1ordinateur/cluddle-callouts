@@ -18,6 +18,7 @@ const BUILTIN_CALLOUTS = [
 
 const DEFAULT_SETTINGS = {
     maxRowsPerColumn: 8,
+    maxGroupColumns: 3,
     preferCustomInSearch: true
 };
 
