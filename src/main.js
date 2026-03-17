@@ -3,12 +3,6 @@ const { DEFAULT_SETTINGS } = require("./constants");
 const { CalloutRegistry } = require("./callout-registry");
 const { EditorCalloutService } = require("./editor-callout-service");
 const { CalloutMenuController } = require("./callout-menu-controller");
-const {
-    clampRowsPerColumn,
-    clampGroupColumns,
-    clampModalWidthRem,
-    clampModalHeightVh
-} = require("./layout-settings");
 const { CustomCalloutContextMenuSettingTab } = require("./settings-tab");
 
 module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
@@ -21,10 +15,6 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             app: this.app,
             registry: this.registry,
             editorService: this.editorService,
-            getMaxRowsPerColumn: () => this.getMaxRowsPerColumn(),
-            getMaxGroupColumns: () => this.getMaxGroupColumns(),
-            getModalWidthRem: () => this.getModalWidthRem(),
-            getModalHeightVh: () => this.getModalHeightVh(),
             preferCustomInSearch: () => this.preferCustomInSearch()
         });
 
@@ -54,22 +44,6 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
 
     async savePluginSettings() {
         await this.saveData(this.settings);
-    }
-
-    getMaxRowsPerColumn() {
-        return clampRowsPerColumn(this.settings.maxRowsPerColumn, DEFAULT_SETTINGS.maxRowsPerColumn);
-    }
-
-    getMaxGroupColumns() {
-        return clampGroupColumns(this.settings.maxGroupColumns, DEFAULT_SETTINGS.maxGroupColumns);
-    }
-
-    getModalWidthRem() {
-        return clampModalWidthRem(this.settings.modalWidthRem, DEFAULT_SETTINGS.modalWidthRem);
-    }
-
-    getModalHeightVh() {
-        return clampModalHeightVh(this.settings.modalHeightVh, DEFAULT_SETTINGS.modalHeightVh);
     }
 
     preferCustomInSearch() {

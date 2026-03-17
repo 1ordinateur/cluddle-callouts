@@ -1,4 +1,5 @@
 const { Modal, setIcon } = require("obsidian");
+const { DEFAULT_SETTINGS } = require("./constants");
 const { movePickerSelection } = require("./navigation-utils");
 const { buildPickerRows } = require("./picker-layout");
 
@@ -28,18 +29,13 @@ class CalloutPickerModal extends Modal {
 
         const content = shell.createDiv({ cls: "custom-callout-context-menu-content" });
 
-        this.modalEl.style.setProperty("--custom-callout-max-rows", String(this.controller.getMaxRowsPerColumn()));
-        this.modalEl.style.setProperty("--custom-callout-group-columns", String(this.controller.getMaxGroupColumns()));
-        this.modalEl.style.setProperty("--custom-callout-modal-width", `${this.controller.getModalWidthRem()}rem`);
-        this.modalEl.style.setProperty("--custom-callout-modal-height", `${this.controller.getModalHeightVh()}vh`);
-
         let itemIndex = 0;
         const columnBlocks = [];
         const rowEntries = [];
         for (const row of buildPickerRows(
             this.options,
-            this.controller.getMaxRowsPerColumn(),
-            this.controller.getMaxGroupColumns()
+            DEFAULT_SETTINGS.maxRowsPerColumn,
+            DEFAULT_SETTINGS.maxGroupColumns
         )) {
             const rowEl = content.createDiv({
                 cls: "custom-callout-context-menu-row",

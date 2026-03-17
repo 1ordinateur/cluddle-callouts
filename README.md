@@ -58,10 +58,6 @@ You can define additional groups with more `--callout-group-<group-name>` proper
 
 The plugin includes settings for:
 
-- Maximum rows per picker column
-- Total picker columns
-- Picker width
-- Picker height
 - Whether custom callouts should rank above built-in ones in search
 
 ## Disclosures
@@ -95,6 +91,7 @@ That bundles the source tree into the shipped `main.js` at the repository root.
 ## Notes
 
 - Release assets for Obsidian should contain only `manifest.json`, `main.js`, and `styles.css`
+- The picker layout and size are static in CSS so the plugin does not inject layout styling from JavaScript
 - Desktop only
 - No network access
 - Reads local Obsidian appearance settings and enabled CSS snippets from the vault config directory
