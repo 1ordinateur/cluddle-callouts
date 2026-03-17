@@ -2,13 +2,15 @@
 
 Cluddle Callouts is an Obsidian plugin that makes callouts easier to insert, switch, and discover while editing notes.
 
-It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets.
+It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from anywhere in Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets.
+
+If you use a lot of custom callouts, this plugin saves you from remembering callout ids or manually rewriting block syntax. You can search, preview, insert, replace, and remove callouts from one place while staying in the editor.
 
 ## Example
 
 ![Cluddle Callouts picker example](docs/readme-example.png)
 
-## What The Plugin Does
+## What This Plugin Does
 
 - Inserts a new callout at the cursor
 - Wraps the current selection in a callout
