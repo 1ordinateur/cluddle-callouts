@@ -68,6 +68,7 @@ The plugin includes settings for:
 - No network access
 - No accounts, payments, ads, or telemetry
 - Reads `.obsidian/appearance.json` and enabled CSS snippet files from `.obsidian/snippets/` to discover custom callout definitions
+- Those files live in Obsidian's hidden config directory, so the plugin uses `Vault.configDir` plus narrow read-only adapter access for that discovery path
 - Stores only its own settings in Obsidian's plugin data store
 - Does not write to notes unless you choose a callout from the picker
 
@@ -94,6 +95,7 @@ That bundles the source tree into the shipped `main.js` at the repository root.
 
 - Release assets for Obsidian should contain only `manifest.json`, `main.js`, and `styles.css`
 - The picker layout and size are static in CSS so the plugin does not inject layout styling from JavaScript
+- Hidden config-dir reads are isolated to a single helper because Obsidian does not expose enabled CSS snippets through the Vault API
 - Desktop only
 - No network access
 - Reads local Obsidian appearance settings and enabled CSS snippets from the vault config directory

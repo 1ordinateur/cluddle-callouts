@@ -1,5 +1,12 @@
 const { BUILTIN_CALLOUTS, GROUP_PROPERTY_PREFIX } = require("./constants");
 
+let normalizeConfigPath = (value) => String(value || "").replace(/\\/g, "/");
+try {
+    ({ normalizePath: normalizeConfigPath } = require("obsidian"));
+} catch (error) {
+    // Node-based tests don't load Obsidian's runtime package.
+}
+
 class CalloutRegistry {
     constructor(app) {
         this.app = app;
@@ -8,12 +15,10 @@ class CalloutRegistry {
     }
 
     async refresh() {
-        const configDir = this.app.vault.configDir;
-        const appearancePath = `${configDir}/appearance.json`;
         let enabledSnippets = [];
 
         try {
-            const appearanceRaw = await this.app.vault.adapter.read(appearancePath);
+            const appearanceRaw = await this.readConfigFile("appearance.json");
             const appearance = JSON.parse(appearanceRaw);
             enabledSnippets = appearance.enabledCssSnippets || [];
         } catch (error) {
@@ -25,11 +30,10 @@ class CalloutRegistry {
         const seenPrimaryIds = new Set();
 
         for (const snippetId of enabledSnippets) {
-            const snippetPath = `${configDir}/snippets/${snippetId}.css`;
             let css = null;
 
             try {
-                css = await this.app.vault.adapter.read(snippetPath);
+                css = await this.readConfigFile(`snippets/${snippetId}.css`);
             } catch (error) {
                 continue;
             }
@@ -61,6 +65,15 @@ class CalloutRegistry {
 
         this.customCallouts = customCallouts;
         this.aliasToPrimary = aliasToPrimary;
+    }
+
+    async readConfigFile(relativePath) {
+        const configPath = normalizeConfigPath(`${this.app.vault.configDir}/${relativePath}`);
+
+        // Hidden config-dir files such as appearance.json and CSS snippets aren't exposed as Vault files.
+        // The feature depends on reading those files directly, so the adapter access is intentionally
+        // isolated to this helper instead of spreading adapter reads throughout the plugin.
+        return this.app.vault.adapter.read(configPath);
     }
 
     getMenuOptions() {
