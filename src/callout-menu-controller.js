@@ -7,6 +7,7 @@ class CalloutMenuController {
         this.registry = options.registry;
         this.editorService = options.editorService;
         this.preferCustomInSearch = options.preferCustomInSearch;
+        this.placeCursorOnNextLineAfterInsert = options.placeCursorOnNextLineAfterInsert;
     }
 
     unload() {}
@@ -61,7 +62,9 @@ class CalloutMenuController {
             options,
             activeType,
             onChoose: (option) => {
-                this.editorService.applyCalloutChoice(editor, option.id, existingContext);
+                this.editorService.applyCalloutChoice(editor, option.id, existingContext, {
+                    placeCursorOnNextLine: this.placeCursorOnNextLineAfterInsert()
+                });
             },
             onClear: () => {
                 this.editorService.clearCalloutFromEditor(editor, existingContext);

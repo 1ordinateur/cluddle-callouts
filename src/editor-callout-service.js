@@ -41,7 +41,7 @@ class EditorCalloutService {
         };
     }
 
-    applyCalloutChoice(editor, calloutId, existingContext = null) {
+    applyCalloutChoice(editor, calloutId, existingContext = null, options = {}) {
         const context = existingContext || this.findCalloutContext(editor);
         if (context) {
             editor.setLine(context.lineStart, this.replaceCalloutType(context.headerLine, calloutId));
@@ -55,10 +55,15 @@ class EditorCalloutService {
         }
 
         const cursor = editor.getCursor();
-        const headerLine = `> [!${calloutId}] `;
+        const placeCursorOnNextLine = options.placeCursorOnNextLine === true;
+        const headerLine = placeCursorOnNextLine
+            ? `> [!${calloutId}]`
+            : `> [!${calloutId}] `;
         const insertion = `${headerLine}\n> `;
         editor.replaceRange(insertion, cursor);
-        editor.setCursor({ line: cursor.line, ch: headerLine.length });
+        editor.setCursor(placeCursorOnNextLine
+            ? { line: cursor.line + 1, ch: 2 }
+            : { line: cursor.line, ch: headerLine.length });
     }
 
     clearCalloutFromEditor(editor, existingContext = null) {

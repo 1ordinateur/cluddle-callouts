@@ -21,7 +21,8 @@ const DEFAULT_SETTINGS = {
     maxGroupColumns: 3,
     modalWidthRem: 42,
     modalHeightVh: 82,
-    preferCustomInSearch: true
+    preferCustomInSearch: true,
+    placeCursorOnNextLineAfterInsert: false
 };
 
 const GROUP_PROPERTY_PREFIX = "callout-group-";

@@ -21,6 +21,18 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                         await this.plugin.savePluginSettings();
                     });
             });
+
+        new Setting(containerEl)
+            .setName("Place cursor on next line after insert")
+            .setDesc("When inserting a brand-new callout, starts the cursor on the blank quoted content line instead of the header line.")
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(this.plugin.placeCursorOnNextLineAfterInsert())
+                    .onChange(async (value) => {
+                        this.plugin.settings.placeCursorOnNextLineAfterInsert = value;
+                        await this.plugin.savePluginSettings();
+                    });
+            });
     }
 }
 

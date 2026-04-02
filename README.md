@@ -61,6 +61,7 @@ You can define additional groups with more `--callout-group-<group-name>` proper
 The plugin includes settings for:
 
 - Whether custom callouts should rank above built-in ones in search
+- Whether inserting a new callout should place the cursor on the next content line instead of the header line
 
 ## Disclosures
 

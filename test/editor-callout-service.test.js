@@ -118,3 +118,15 @@ test("inserts a new callout when there is no selection and no existing callout",
     assert.deepEqual(editor.lines.slice(0, 2), ["> [!question] ", "> "]);
     assert.deepEqual(editor.cursor, { line: 0, ch: "> [!question] ".length });
 });
+
+test("can place the cursor on the next line after inserting a new callout", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "plain"
+    ], 0);
+
+    service.applyCalloutChoice(editor, "question", null, { placeCursorOnNextLine: true });
+
+    assert.deepEqual(editor.lines.slice(0, 2), ["> [!question]", "> "]);
+    assert.deepEqual(editor.cursor, { line: 1, ch: 2 });
+});
