@@ -115,6 +115,6 @@ test("inserts a new callout when there is no selection and no existing callout",
 
     service.applyCalloutChoice(editor, "question");
 
-    assert.deepEqual(editor.lines.slice(0, 2), ["> [!question]", "> "]);
-    assert.deepEqual(editor.cursor, { line: 1, ch: 2 });
+    assert.deepEqual(editor.lines.slice(0, 2), ["> [!question] ", "> "]);
+    assert.deepEqual(editor.cursor, { line: 0, ch: "> [!question] ".length });
 });

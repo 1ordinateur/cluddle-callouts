@@ -55,9 +55,10 @@ class EditorCalloutService {
         }
 
         const cursor = editor.getCursor();
-        const insertion = `> [!${calloutId}]\n> `;
+        const headerLine = `> [!${calloutId}] `;
+        const insertion = `${headerLine}\n> `;
         editor.replaceRange(insertion, cursor);
-        editor.setCursor({ line: cursor.line + 1, ch: 2 });
+        editor.setCursor({ line: cursor.line, ch: headerLine.length });
     }
 
     clearCalloutFromEditor(editor, existingContext = null) {
