@@ -16,7 +16,8 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             registry: this.registry,
             editorService: this.editorService,
             preferCustomInSearch: () => this.preferCustomInSearch(),
-            placeCursorOnNextLineAfterInsert: () => this.placeCursorOnNextLineAfterInsert()
+            placeCursorOnNextLineAfterInsert: () => this.placeCursorOnNextLineAfterInsert(),
+            placeCursorOnNextLineAfterAlternateInsert: () => this.placeCursorOnNextLineAfterAlternateInsert()
         });
 
         await this.registry.refresh();
@@ -32,6 +33,16 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             name: "Open callout picker",
             editorCallback: (editor) => {
                 this.menuController.openCalloutPicker(editor);
+            }
+        });
+
+        this.addCommand({
+            id: "open-callout-picker-alternate-insertion-mode",
+            name: "Open callout picker (alternate insertion mode)",
+            editorCallback: (editor) => {
+                this.menuController.openCalloutPicker(editor, null, {
+                    useAlternateInsertionMode: true
+                });
             }
         });
 
@@ -53,5 +64,9 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
 
     placeCursorOnNextLineAfterInsert() {
         return this.settings.placeCursorOnNextLineAfterInsert === true;
+    }
+
+    placeCursorOnNextLineAfterAlternateInsert() {
+        return this.settings.placeCursorOnNextLineAfterAlternateInsert === true;
     }
 };

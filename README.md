@@ -62,6 +62,12 @@ The plugin includes settings for:
 
 - Whether custom callouts should rank above built-in ones in search
 - Whether inserting a new callout should place the cursor on the next content line instead of the header line
+- Whether the alternate insertion mode command should place the cursor on the next content line instead of the header line
+
+There are also two commands you can bind in Obsidian Hotkeys:
+
+- `Open callout picker`
+- `Open callout picker (alternate insertion mode)`
 
 ## Disclosures
 

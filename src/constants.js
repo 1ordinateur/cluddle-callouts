@@ -22,7 +22,8 @@ const DEFAULT_SETTINGS = {
     modalWidthRem: 42,
     modalHeightVh: 82,
     preferCustomInSearch: true,
-    placeCursorOnNextLineAfterInsert: false
+    placeCursorOnNextLineAfterInsert: false,
+    placeCursorOnNextLineAfterAlternateInsert: true
 };
 
 const GROUP_PROPERTY_PREFIX = "callout-group-";

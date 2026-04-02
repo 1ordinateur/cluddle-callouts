@@ -33,6 +33,18 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                         await this.plugin.savePluginSettings();
                     });
             });
+
+        new Setting(containerEl)
+            .setName("Alternate insert starts on next line")
+            .setDesc("Used by the alternate insertion mode command. Bind that command to a hotkey in Obsidian if you want a shortcut such as Alt+Enter.")
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(this.plugin.placeCursorOnNextLineAfterAlternateInsert())
+                    .onChange(async (value) => {
+                        this.plugin.settings.placeCursorOnNextLineAfterAlternateInsert = value;
+                        await this.plugin.savePluginSettings();
+                    });
+            });
     }
 }
 

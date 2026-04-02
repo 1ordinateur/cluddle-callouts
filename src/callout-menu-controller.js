@@ -8,6 +8,7 @@ class CalloutMenuController {
         this.editorService = options.editorService;
         this.preferCustomInSearch = options.preferCustomInSearch;
         this.placeCursorOnNextLineAfterInsert = options.placeCursorOnNextLineAfterInsert;
+        this.placeCursorOnNextLineAfterAlternateInsert = options.placeCursorOnNextLineAfterAlternateInsert;
     }
 
     unload() {}
@@ -50,12 +51,16 @@ class CalloutMenuController {
         });
     }
 
-    openCalloutPicker(editor, existingContext = null) {
+    openCalloutPicker(editor, existingContext = null, pickerOptions = {}) {
         const activeType = existingContext?.calloutType || this.editorService.getActiveCalloutTypeFromEditor(editor);
         const options = this.registry.getMenuOptions();
         if (options.length === 0) {
             return;
         }
+
+        const placeCursorOnNextLine = pickerOptions.useAlternateInsertionMode
+            ? this.placeCursorOnNextLineAfterAlternateInsert()
+            : this.placeCursorOnNextLineAfterInsert();
 
         const modal = new CalloutPickerModal(this.app, {
             controller: this,
@@ -63,7 +68,7 @@ class CalloutMenuController {
             activeType,
             onChoose: (option) => {
                 this.editorService.applyCalloutChoice(editor, option.id, existingContext, {
-                    placeCursorOnNextLine: this.placeCursorOnNextLineAfterInsert()
+                    placeCursorOnNextLine
                 });
             },
             onClear: () => {
