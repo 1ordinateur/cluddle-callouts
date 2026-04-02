@@ -61,8 +61,8 @@ You can define additional groups with more `--callout-group-<group-name>` proper
 The plugin includes settings for:
 
 - Whether custom callouts should rank above built-in ones in search
-- Whether inserting a new callout should place the cursor on the next content line instead of the header line
-- Whether the alternate insertion mode command should place the cursor on the next content line instead of the header line
+- Whether the default insert behavior should place the cursor on the next content line instead of the header line
+- Whether the alternate insertion mode command should place the cursor on the next content line instead of the header line, separately from the default insert behavior
 
 There are also two commands you can bind in Obsidian Hotkeys:
 

@@ -23,8 +23,8 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Place cursor on next line after insert")
-            .setDesc("When inserting a brand-new callout, starts the cursor on the blank quoted content line instead of the header line.")
+            .setName("Default insert starts on next line")
+            .setDesc("Controls the normal insert behavior for a brand-new callout.")
             .addToggle((toggle) => {
                 toggle
                     .setValue(this.plugin.placeCursorOnNextLineAfterInsert())
@@ -35,8 +35,8 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
-            .setName("Alternate insert starts on next line")
-            .setDesc("Used by the alternate insertion mode command. Bind that command to a hotkey in Obsidian if you want a shortcut such as Alt+Enter.")
+            .setName("Alternate command starts on next line")
+            .setDesc("Controls the alternate insertion mode command as an alternative to the default insert setting above. Bind that command in Obsidian Hotkeys if you want a shortcut such as Alt+Enter.")
             .addToggle((toggle) => {
                 toggle
                     .setValue(this.plugin.placeCursorOnNextLineAfterAlternateInsert())
