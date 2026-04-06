@@ -51,25 +51,23 @@ class CalloutMenuController {
         });
     }
 
-    openCalloutPicker(editor, existingContext = null, pickerOptions = {}) {
+    openCalloutPicker(editor, existingContext = null) {
         const activeType = existingContext?.calloutType || this.editorService.getActiveCalloutTypeFromEditor(editor);
         const options = this.registry.getMenuOptions();
         if (options.length === 0) {
             return;
         }
 
-        const placeCursorOnNextLine = resolvePlaceCursorOnNextLine(
-            this.placeCursorOnNextLineAfterInsert(),
-            pickerOptions.useAlternateInsertionMode === true
-        );
-
         const modal = new CalloutPickerModal(this.app, {
             controller: this,
             options,
             activeType,
-            onChoose: (option) => {
+            onChoose: (option, chooseOptions = {}) => {
                 this.editorService.applyCalloutChoice(editor, option.id, existingContext, {
-                    placeCursorOnNextLine
+                    placeCursorOnNextLine: resolvePlaceCursorOnNextLine(
+                        this.placeCursorOnNextLineAfterInsert(),
+                        chooseOptions.useAlternateInsertionMode === true
+                    )
                 });
             },
             onClear: () => {

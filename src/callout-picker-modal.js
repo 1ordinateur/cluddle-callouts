@@ -11,9 +11,22 @@ class CalloutPickerModal extends Modal {
         this.activeType = options.activeType || "";
         this.onChoose = options.onChoose;
         this.onClear = options.onClear;
+        this.itemNodeActions = new WeakMap();
+    }
+
+    runItemAction(itemNode, useAlternateInsertionMode = false) {
+        if (!itemNode) {
+            return;
+        }
+
+        const action = this.itemNodeActions.get(itemNode);
+        if (typeof action === "function") {
+            action(useAlternateInsertionMode);
+        }
     }
 
     onOpen() {
+        this.itemNodeActions = new WeakMap();
         this.modalEl.addClass("custom-callout-picker-modal");
         this.contentEl.empty();
 
@@ -255,7 +268,7 @@ class CalloutPickerModal extends Modal {
             if (event.key === "Enter") {
                 if (selectedItemNode) {
                     event.preventDefault();
-                    selectedItemNode.click();
+                    this.runItemAction(selectedItemNode, event.altKey === true);
                 }
                 return;
             }
@@ -297,9 +310,13 @@ class CalloutPickerModal extends Modal {
             setIcon(checkEl, "check");
         }
 
-        itemNode.addEventListener("click", () => {
-            this.onChoose(option);
+        this.itemNodeActions.set(itemNode, (useAlternateInsertionMode) => {
+            this.onChoose(option, { useAlternateInsertionMode });
             this.close();
+        });
+
+        itemNode.addEventListener("click", (event) => {
+            this.runItemAction(itemNode, event.altKey === true);
         });
 
         return itemNode;
@@ -317,9 +334,13 @@ class CalloutPickerModal extends Modal {
         setIcon(iconEl, "eraser");
         appearanceEl.createDiv({ cls: "menu-item-title", text: "None" });
 
-        itemNode.addEventListener("click", () => {
+        this.itemNodeActions.set(itemNode, () => {
             this.onClear();
             this.close();
+        });
+
+        itemNode.addEventListener("click", () => {
+            this.runItemAction(itemNode);
         });
 
         return itemNode;

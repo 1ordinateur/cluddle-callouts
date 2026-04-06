@@ -35,15 +35,6 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             }
         });
 
-        this.addCommand({
-            id: "open-callout-picker-alternate-insertion-mode",
-            name: "Open callout picker (alternate insertion mode)",
-            editorCallback: (editor) => {
-                this.menuController.openCalloutPicker(editor, null, {
-                    useAlternateInsertionMode: true
-                });
-            }
-        });
 
         this.addSettingTab(new CustomCalloutContextMenuSettingTab(this.app, this));
     }

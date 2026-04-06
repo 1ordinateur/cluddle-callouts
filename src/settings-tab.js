@@ -24,7 +24,7 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName("Default insert starts on next line")
-            .setDesc("Controls the normal insert behavior for a brand-new callout. The alternate insertion mode command uses the opposite behavior.")
+            .setDesc("Controls the normal insert behavior for a brand-new callout. Press Alt+Enter in the picker to use the opposite behavior once.")
             .addToggle((toggle) => {
                 toggle
                     .setValue(this.plugin.placeCursorOnNextLineAfterInsert())

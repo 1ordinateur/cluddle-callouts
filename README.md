@@ -63,12 +63,11 @@ The plugin includes settings for:
 - Whether custom callouts should rank above built-in ones in search
 - Whether the default insert behavior should place the cursor on the next content line instead of the header line
 
-The alternate insertion mode command always uses the opposite cursor-placement behavior from that default insert setting.
+Press `Alt+Enter` in the picker to use the opposite cursor-placement behavior from that default insert setting for a single insertion.
 
-There are also two commands you can bind in Obsidian Hotkeys:
+There is also a command you can bind in Obsidian Hotkeys:
 
 - `Open callout picker`
-- `Open callout picker (alternate insertion mode)`
 
 ## Disclosures
 
