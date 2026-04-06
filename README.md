@@ -10,6 +10,18 @@ If you use a lot of custom callouts, this plugin saves you from remembering call
 
 ![Cluddle Callouts picker example](docs/readme-example.png)
 
+## Install From GitHub
+
+Until the plugin is available in Obsidian Community Plugins, install it from the latest GitHub release:
+
+1. Download `manifest.json`, `main.js`, and `styles.css` from the latest release on GitHub.
+2. Create a folder named `cluddle-callouts` inside your vault at `.obsidian/plugins/`.
+3. Copy those three files into `.obsidian/plugins/cluddle-callouts/`.
+4. Open Obsidian and go to `Settings` → `Community plugins`.
+5. Make sure community plugins are enabled, then enable `Cluddle Callouts`.
+
+Development installs from a local clone still work as usual, but GitHub releases are the intended install path until the store listing is live.
+
 ## What This Plugin Does
 
 - Inserts a new callout at the cursor
@@ -33,7 +45,31 @@ If your cursor is already inside a callout, the picker acts as a "change callout
 
 The plugin reads enabled CSS snippets from your vault's Obsidian config and looks for `.callout[data-callout="..."]` definitions. That means custom callouts can show up in the picker automatically without requiring a separate plugin-specific registry.
 
-Here is a full example of a CSS snippet entry that this plugin can process:
+The format it looks for is:
+
+```css
+.callout[data-callout="primary-id"],
+.callout[data-callout="alias-id"] {
+  --callout-color: 230, 126, 34;
+  --callout-icon: lucide-stethoscope;
+  --callout-concept: recognition;
+  --callout-groups: medical;
+  --callout-group-medical: primary-id alias-id;
+}
+```
+
+The plugin currently uses these properties:
+
+- `data-callout="..."` selectors to collect the primary id and aliases
+- `--callout-color` to color the picker preview
+- `--callout-groups` to decide which group or groups the callout belongs to
+- `--callout-group-<group-name>` to define the label shown for that group entry and its aliases
+- `--callout-concept` as optional metadata for organizing related callouts in your snippet
+- `--callout-icon` for the rendered Obsidian callout itself; the picker does not currently parse icons
+
+A complete real-world example is included in `docs/example-medical-callouts.css`.
+
+Here is a small example of a CSS snippet entry that this plugin can process:
 
 ```css
 .callout[data-callout="indicated"],

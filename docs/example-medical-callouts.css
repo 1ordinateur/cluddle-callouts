@@ -1,0 +1,201 @@
+/* Custom medical callouts for Obsidian.
+ * Everything is flattened into a single picker group: medical.
+ * Existing aliases are preserved so older notes still render consistently.
+ */
+
+.callout[data-callout="indicated"],
+.callout[data-callout="indi"] {
+    --callout-color: 124, 140, 32;
+    --callout-icon: lucide-stethoscope;
+    --callout-concept: recognition;
+    --callout-groups: medical;
+    --callout-group-medical: indicated indi;
+}
+
+.callout[data-callout="treatment"],
+.callout[data-callout="trea"],
+.callout[data-callout="use"] {
+    --callout-color: 34, 197, 94;
+    --callout-icon: lucide-stethoscope;
+    --callout-concept: treatment;
+    --callout-groups: medical;
+    --callout-group-medical: treatment trea use;
+}
+
+.callout[data-callout="symptoms"],
+.callout[data-callout="symp"] {
+    --callout-color: 124, 140, 32;
+    --callout-icon: lucide-stethoscope;
+    --callout-concept: recognition;
+    --callout-groups: medical;
+    --callout-group-medical: symptoms symp;
+}
+
+.callout[data-callout="character"],
+.callout[data-callout="char"] {
+    --callout-color: 124, 140, 32;
+    --callout-icon: lucide-stethoscope;
+    --callout-concept: recognition;
+    --callout-groups: medical;
+    --callout-group-medical: character char;
+}
+
+.callout[data-callout="mechanism"],
+.callout[data-callout="mech"],
+.callout[data-callout="role"] {
+    --callout-color: 37, 99, 235;
+    --callout-icon: lucide-cog;
+    --callout-concept: mechanism;
+    --callout-groups: medical;
+    --callout-group-medical: mechanism mech role;
+}
+
+.callout[data-callout="effect"],
+.callout[data-callout="effe"],
+.callout[data-callout="consequences"],
+.callout[data-callout="cons"] {
+    --callout-color: 29, 78, 216;
+    --callout-icon: lucide-flask-conical;
+    --callout-concept: effect;
+    --callout-groups: medical;
+    --callout-group-medical: effect effe consequences cons;
+}
+
+.callout[data-callout="pathology"],
+.callout[data-callout="patho"],
+.callout[data-callout="pathogenesis"],
+.callout[data-callout="path"],
+.callout[data-callout="genesis"],
+.callout[data-callout="gene"] {
+    --callout-color: 29, 78, 216;
+    --callout-icon: lucide-flask-conical;
+    --callout-concept: pathology;
+    --callout-groups: medical;
+    --callout-group-medical: pathology patho pathogenesis path genesis gene;
+}
+
+.callout[data-callout="disease"],
+.callout[data-callout="dise"] {
+    --callout-color: 220, 38, 38;
+    --callout-icon: lucide-flask-conical;
+    --callout-concept: disease;
+    --callout-groups: medical;
+    --callout-group-medical: disease dise;
+}
+
+.callout[data-callout="complications"],
+.callout[data-callout="comp"],
+.callout[data-callout="sequelae"],
+.callout[data-callout="sequ"],
+.callout[data-callout="seq"] {
+    --callout-color: 220, 38, 38;
+    --callout-icon: lucide-frown;
+    --callout-concept: complications;
+    --callout-groups: medical;
+    --callout-group-medical: complications comp sequelae sequ seq;
+}
+
+.callout[data-callout="risk-factors"],
+.callout[data-callout="riskfactor"],
+.callout[data-callout="risk"],
+.callout[data-callout="rf"] {
+    --callout-color: 234, 88, 12;
+    --callout-icon: lucide-shield-alert;
+    --callout-concept: risk-factors;
+    --callout-groups: medical;
+    --callout-group-medical: risk-factors riskfactor risk rf;
+}
+
+.callout[data-callout="causes"],
+.callout[data-callout="cause"],
+.callout[data-callout="etiology"],
+.callout[data-callout="aetiology"],
+.callout[data-callout="etio"],
+.callout[data-callout="aetio"] {
+    --callout-color: 217, 119, 6;
+    --callout-icon: lucide-link-2;
+    --callout-concept: causes;
+    --callout-groups: medical;
+    --callout-group-medical: causes cause etiology aetiology etio aetio;
+}
+
+.callout[data-callout="question"],
+.callout[data-callout="ques"] {
+    --callout-color: 234, 179, 8;
+    --callout-icon: lucide-circle-question-mark;
+    --callout-concept: question;
+    --callout-groups: medical;
+    --callout-group-medical: question ques;
+}
+
+.callout[data-callout="remember"],
+.callout[data-callout="reme"],
+.callout[data-callout="important"],
+.callout[data-callout="impo"] {
+    --callout-color: 127, 29, 29;
+    --callout-icon: lucide-bookmark;
+    font-weight: 700;
+    --callout-concept: remember;
+    --callout-groups: medical;
+    --callout-group-medical: remember reme important impo;
+}
+
+.callout[data-callout="contraindicated"],
+.callout[data-callout="cont"],
+.callout[data-callout="contra"] {
+    --callout-color: 185, 28, 28;
+    --callout-icon: lucide-octagon-x;
+    --callout-concept: contraindication;
+    --callout-groups: medical;
+    --callout-group-medical: contraindicated cont contra;
+}
+
+.callout[data-callout="checklist"],
+.callout[data-callout="chec"] {
+    --callout-color: 147, 51, 234;
+    --callout-icon: lucide-list-checks;
+    --callout-concept: checklist;
+    --callout-groups: medical;
+    --callout-group-medical: checklist chec;
+}
+
+.callout[data-callout="tests"],
+.callout[data-callout="test"] {
+    --callout-color: 147, 51, 234;
+    --callout-icon: lucide-list-checks;
+    --callout-concept: tests;
+    --callout-groups: medical;
+    --callout-group-medical: tests test;
+}
+
+.callout[data-callout="example"],
+.callout[data-callout="exam"] {
+    --callout-color: 74, 222, 128;
+    --callout-icon: lucide-lightbulb;
+    --callout-concept: example;
+    --callout-groups: medical;
+    --callout-group-medical: example exam;
+}
+
+.callout[data-callout="definitions"],
+.callout[data-callout="definition"],
+.callout[data-callout="defs"],
+.callout[data-callout="defn"] {
+    --callout-color: 168, 85, 247;
+    --callout-icon: lucide-book-open-text;
+    --callout-concept: definitions;
+    --callout-groups: medical;
+    --callout-group-medical: definitions definition defs defn;
+}
+
+.callout[data-callout="aux"],
+.callout[data-callout="auxi"],
+.callout[data-callout="auxiliary"],
+.callout[data-callout="auxillary"] {
+    --callout-color: 107, 114, 128;
+    --callout-icon: lucide-info;
+    opacity: 0.9;
+    --callout-concept: auxiliary;
+    --callout-groups: medical;
+    --callout-group-medical: aux auxi auxiliary auxillary;
+}
