@@ -1,4 +1,5 @@
 const { CalloutPickerModal } = require("./callout-picker-modal");
+const { resolvePlaceCursorOnNextLine } = require("./insertion-mode");
 const { normalizeSearchText, getBestFuzzyScore } = require("./search-utils");
 
 class CalloutMenuController {
@@ -8,7 +9,6 @@ class CalloutMenuController {
         this.editorService = options.editorService;
         this.preferCustomInSearch = options.preferCustomInSearch;
         this.placeCursorOnNextLineAfterInsert = options.placeCursorOnNextLineAfterInsert;
-        this.placeCursorOnNextLineAfterAlternateInsert = options.placeCursorOnNextLineAfterAlternateInsert;
     }
 
     unload() {}
@@ -58,9 +58,10 @@ class CalloutMenuController {
             return;
         }
 
-        const placeCursorOnNextLine = pickerOptions.useAlternateInsertionMode
-            ? this.placeCursorOnNextLineAfterAlternateInsert()
-            : this.placeCursorOnNextLineAfterInsert();
+        const placeCursorOnNextLine = resolvePlaceCursorOnNextLine(
+            this.placeCursorOnNextLineAfterInsert(),
+            pickerOptions.useAlternateInsertionMode === true
+        );
 
         const modal = new CalloutPickerModal(this.app, {
             controller: this,

@@ -16,8 +16,7 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             registry: this.registry,
             editorService: this.editorService,
             preferCustomInSearch: () => this.preferCustomInSearch(),
-            placeCursorOnNextLineAfterInsert: () => this.placeCursorOnNextLineAfterInsert(),
-            placeCursorOnNextLineAfterAlternateInsert: () => this.placeCursorOnNextLineAfterAlternateInsert()
+            placeCursorOnNextLineAfterInsert: () => this.placeCursorOnNextLineAfterInsert()
         });
 
         await this.registry.refresh();
@@ -66,7 +65,4 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
         return this.settings.placeCursorOnNextLineAfterInsert === true;
     }
 
-    placeCursorOnNextLineAfterAlternateInsert() {
-        return this.settings.placeCursorOnNextLineAfterAlternateInsert === true;
-    }
 };
