@@ -20,9 +20,12 @@ class CalloutMenuController {
         }
 
         const context = this.editorService.findCalloutContext(editor);
+        const hasSelection = editor.getSelection().length > 0;
         const title = context
-            ? "Change callout type"
-            : editor.getSelection().length > 0
+            ? hasSelection
+                ? "Wrap selection in nested callout"
+                : "Insert nested callout"
+            : hasSelection
                 ? "Wrap selection in callout"
                 : "Insert callout";
 
@@ -32,13 +35,23 @@ class CalloutMenuController {
                 .setIcon("panel-top-open")
                 .setSection("callouts")
                 .onClick(() => {
-                    this.openCalloutPicker(editor, context);
+                    this.openCalloutPicker(editor);
                 });
         });
 
         if (!context) {
             return;
         }
+
+        menu.addItem((item) => {
+            item
+                .setTitle("Change current callout type")
+                .setIcon("pencil")
+                .setSection("callouts")
+                .onClick(() => {
+                    this.openRenameCalloutPicker(editor, context);
+                });
+        });
 
         menu.addItem((item) => {
             item
@@ -51,8 +64,7 @@ class CalloutMenuController {
         });
     }
 
-    openCalloutPicker(editor, existingContext = null) {
-        const activeType = existingContext?.calloutType || this.editorService.getActiveCalloutTypeFromEditor(editor);
+    openCalloutPicker(editor) {
         const options = this.registry.getMenuOptions();
         if (options.length === 0) {
             return;
@@ -61,17 +73,41 @@ class CalloutMenuController {
         const modal = new CalloutPickerModal(this.app, {
             controller: this,
             options,
-            activeType,
+            activeType: "",
+            includeUtility: false,
             onChoose: (option, chooseOptions = {}) => {
-                this.editorService.applyCalloutChoice(editor, option.id, existingContext, {
+                this.editorService.applyCalloutChoice(editor, option.id, {
                     placeCursorOnNextLine: resolvePlaceCursorOnNextLine(
                         this.placeCursorOnNextLineAfterInsert(),
                         chooseOptions.useAlternateInsertionMode === true
                     )
                 });
+            }
+        });
+        modal.open();
+    }
+
+    openRenameCalloutPicker(editor, existingContext = null) {
+        const context = existingContext || this.editorService.findCalloutContext(editor);
+        if (!context) {
+            return;
+        }
+
+        const options = this.registry.getMenuOptions();
+        if (options.length === 0) {
+            return;
+        }
+
+        const modal = new CalloutPickerModal(this.app, {
+            controller: this,
+            options,
+            activeType: context.calloutType,
+            includeUtility: true,
+            onChoose: (option) => {
+                this.editorService.renameCalloutType(editor, option.id, context);
             },
             onClear: () => {
-                this.editorService.clearCalloutFromEditor(editor, existingContext);
+                this.editorService.clearCalloutFromEditor(editor, context);
             }
         });
         modal.open();

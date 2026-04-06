@@ -41,29 +41,54 @@ class EditorCalloutService {
         };
     }
 
-    applyCalloutChoice(editor, calloutId, existingContext = null, options = {}) {
-        const context = existingContext || this.findCalloutContext(editor);
-        if (context) {
-            editor.setLine(context.lineStart, this.replaceCalloutType(context.headerLine, calloutId));
-            return;
-        }
-
+    applyCalloutChoice(editor, calloutId, options = {}) {
+        const context = this.findCalloutContext(editor);
+        const linePrefix = this.getInsertedCalloutPrefix(editor, context);
         const selection = editor.getSelection();
         if (selection && selection.length > 0) {
-            editor.replaceSelection(this.wrapSelectionAsCallout(selection, calloutId));
+            editor.replaceSelection(this.wrapSelectionAsCallout(selection, calloutId, linePrefix));
             return;
         }
 
         const cursor = editor.getCursor();
         const placeCursorOnNextLine = options.placeCursorOnNextLine === true;
         const headerLine = placeCursorOnNextLine
-            ? `> [!${calloutId}]`
-            : `> [!${calloutId}] `;
-        const insertion = `${headerLine}\n> `;
-        editor.replaceRange(insertion, cursor);
+            ? `${linePrefix}[!${calloutId}]`
+            : `${linePrefix}[!${calloutId}] `;
+
+        if (context && cursor.line !== context.lineStart) {
+            const currentLine = editor.getLine(cursor.line);
+            editor.setLine(cursor.line, headerLine);
+            editor.replaceRange(`\n${this.buildNestedBodyLine(currentLine, linePrefix)}`, {
+                line: cursor.line,
+                ch: headerLine.length
+            });
+            editor.setCursor(placeCursorOnNextLine
+                ? { line: cursor.line + 1, ch: linePrefix.length }
+                : { line: cursor.line, ch: headerLine.length });
+            return;
+        }
+
+        const insertionPoint = this.getCalloutInsertionPoint(editor, context);
+        const insertsAfterCurrentLine = context !== null;
+        const insertion = `${insertsAfterCurrentLine ? "\n" : ""}${headerLine}\n${linePrefix}`;
+        editor.replaceRange(insertion, insertionPoint);
+
+        const headerLineNumber = insertsAfterCurrentLine
+            ? insertionPoint.line + 1
+            : insertionPoint.line;
         editor.setCursor(placeCursorOnNextLine
-            ? { line: cursor.line + 1, ch: 2 }
-            : { line: cursor.line, ch: headerLine.length });
+            ? { line: headerLineNumber + 1, ch: linePrefix.length }
+            : { line: headerLineNumber, ch: headerLine.length });
+    }
+
+    renameCalloutType(editor, calloutId, existingContext = null) {
+        const context = existingContext || this.findCalloutContext(editor);
+        if (!context) {
+            return;
+        }
+
+        editor.setLine(context.lineStart, this.replaceCalloutType(context.headerLine, calloutId));
     }
 
     clearCalloutFromEditor(editor, existingContext = null) {
@@ -83,8 +108,17 @@ class EditorCalloutService {
         return /^\s*>/.test(line || "");
     }
 
+    getBlockquotePrefix(line) {
+        const match = /^(\s*(?:>\s*)+)/.exec(line || "");
+        if (!match) {
+            return "";
+        }
+
+        return match[1].replace(/\s*$/, " ");
+    }
+
     parseCalloutHeaderLine(line) {
-        const match = /^(\s*>\s*)\[!([^\]|]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
+        const match = /^(\s*(?:>\s*)+)\[!([^\]|]+)(?:[^\]]*)\]([+-]?)(.*)$/.exec(line || "");
         if (!match) {
             return null;
         }
@@ -125,16 +159,48 @@ class EditorCalloutService {
         return this.findCalloutContext(editor)?.calloutType || "";
     }
 
-    wrapSelectionAsCallout(selection, calloutId) {
+    getInsertedCalloutPrefix(editor, existingContext = null) {
+        const context = existingContext || this.findCalloutContext(editor);
+        if (!context) {
+            return "> ";
+        }
+
+        return `${this.getBlockquotePrefix(editor.getLine(editor.getCursor("head").line))}> `;
+    }
+
+    getCalloutInsertionPoint(editor, existingContext = null) {
+        const cursor = editor.getCursor();
+        const context = existingContext || this.findCalloutContext(editor);
+        if (!context) {
+            return cursor;
+        }
+
+        return {
+            line: cursor.line,
+            ch: editor.getLine(cursor.line).length
+        };
+    }
+
+    buildNestedBodyLine(currentLine, linePrefix) {
+        const currentPrefix = this.getBlockquotePrefix(currentLine);
+        const currentLineRemainder = currentLine.slice(currentPrefix.length);
+        if (currentLineRemainder.length === 0) {
+            return linePrefix.trimEnd();
+        }
+
+        return `${linePrefix}${currentLineRemainder}`;
+    }
+
+    wrapSelectionAsCallout(selection, calloutId, linePrefix = "> ") {
         const normalized = String(selection || "").replace(/\r\n/g, "\n");
         const lines = normalized.split("\n");
         const content = lines.map((line) => {
             if (line.length === 0) {
-                return ">";
+                return linePrefix.trimEnd();
             }
-            return `> ${line}`;
+            return `${linePrefix}${line}`;
         }).join("\n");
-        return `> [!${calloutId}]\n${content}`;
+        return `${linePrefix}[!${calloutId}]\n${content}`;
     }
 }
 

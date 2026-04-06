@@ -35,6 +35,13 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             }
         });
 
+        this.addCommand({
+            id: "rename-current-callout-type",
+            name: "Rename current callout type",
+            editorCallback: (editor) => {
+                this.menuController.openRenameCalloutPicker(editor);
+            }
+        });
 
         this.addSettingTab(new CustomCalloutContextMenuSettingTab(this.app, this));
     }
@@ -55,5 +62,4 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
     placeCursorOnNextLineAfterInsert() {
         return this.settings.placeCursorOnNextLineAfterInsert === true;
     }
-
 };

@@ -39,7 +39,7 @@ Development installs from a local clone still work as usual, but GitHub releases
 4. Use `ArrowUp`, `ArrowDown`, `ArrowLeft`, and `ArrowRight` to move around the picker if needed.
 5. Press `Enter` to apply the selected result, or click an item directly.
 
-If your cursor is already inside a callout, the picker acts as a "change callout type" tool and also exposes a remove action from the editor context menu.
+If your cursor is already inside a callout, `Open callout picker` inserts a nested callout instead of changing the current header. Use `Rename current callout type` if you want to retag the current callout itself.
 
 ## Custom Callouts
 
@@ -101,9 +101,10 @@ The plugin includes settings for:
 
 Press `Alt+Enter` in the picker to use the opposite cursor-placement behavior from that default insert setting for a single insertion.
 
-There is also a command you can bind in Obsidian Hotkeys:
+There are also commands you can bind in Obsidian Hotkeys:
 
 - `Open callout picker`
+- `Rename current callout type`
 
 ## Disclosures
 

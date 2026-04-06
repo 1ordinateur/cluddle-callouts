@@ -11,6 +11,7 @@ class CalloutPickerModal extends Modal {
         this.activeType = options.activeType || "";
         this.onChoose = options.onChoose;
         this.onClear = options.onClear;
+        this.includeUtility = options.includeUtility !== false;
         this.itemNodeActions = new WeakMap();
     }
 
@@ -48,7 +49,8 @@ class CalloutPickerModal extends Modal {
         for (const row of buildPickerRows(
             this.options,
             DEFAULT_SETTINGS.maxRowsPerColumn,
-            DEFAULT_SETTINGS.maxGroupColumns
+            DEFAULT_SETTINGS.maxGroupColumns,
+            this.includeUtility
         )) {
             const rowEl = content.createDiv({
                 cls: "custom-callout-context-menu-row",
@@ -335,7 +337,9 @@ class CalloutPickerModal extends Modal {
         appearanceEl.createDiv({ cls: "menu-item-title", text: "None" });
 
         this.itemNodeActions.set(itemNode, () => {
-            this.onClear();
+            if (typeof this.onClear === "function") {
+                this.onClear();
+            }
             this.close();
         });
 
