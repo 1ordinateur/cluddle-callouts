@@ -4,6 +4,15 @@ function resolvePlaceCursorOnNextLine(defaultInsertStartsOnNextLine, useAlternat
         : defaultInsertStartsOnNextLine;
 }
 
+function resolveDefaultPlaceCursorOnNextLine(configuredDefault, isInsideCallout, hasSelection) {
+    if (isInsideCallout && !hasSelection) {
+        return true;
+    }
+
+    return configuredDefault;
+}
+
 module.exports = {
+    resolveDefaultPlaceCursorOnNextLine,
     resolvePlaceCursorOnNextLine
 };

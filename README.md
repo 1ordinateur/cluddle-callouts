@@ -98,6 +98,7 @@ The plugin includes settings for:
 
 - Whether custom callouts should rank above built-in ones in search
 - Whether the default insert behavior should place the cursor on the next content line instead of the header line
+- The text color used for rendered callout titles after you edit the title away from the default callout label
 
 Press `Alt+Enter` in the picker to use the opposite cursor-placement behavior from that default insert setting for a single insertion.
 

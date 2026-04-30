@@ -22,6 +22,7 @@ function createEditor(lines, cursorLine = 0, selection = "", cursorCh = 0) {
         lines: [...lines],
         cursor: { line: cursorLine, ch: cursorCh },
         selection,
+        focused: false,
         getCursor() {
             return this.cursor;
         },
@@ -48,6 +49,9 @@ function createEditor(lines, cursorLine = 0, selection = "", cursorCh = 0) {
         },
         setCursor(cursor) {
             this.cursor = cursor;
+        },
+        focus() {
+            this.focused = true;
         }
     };
 }
@@ -226,6 +230,17 @@ test("can keep the cursor on the header line when explicit options disable next-
     assert.deepEqual(editor.cursor, { line: 0, ch: "> [!question] ".length });
 });
 
+test("focuses the editor after inserting a callout", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "plain"
+    ], 0);
+
+    service.applyCalloutChoice(editor, "question");
+
+    assert.equal(editor.focused, true);
+});
+
 test("can place the cursor on the next line after inserting a nested callout", () => {
     const service = new EditorCalloutService();
     const editor = createEditor([
@@ -241,4 +256,92 @@ test("can place the cursor on the next line after inserting a nested callout", (
         "> > body"
     ]);
     assert.deepEqual(editor.cursor, { line: 2, ch: 4 });
+});
+
+test("can place the cursor on an empty nested body line", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "> [!note] Parent",
+        "> "
+    ], 1);
+
+    service.applyCalloutChoice(editor, "question", { placeCursorOnNextLine: true });
+
+    assert.deepEqual(editor.lines, [
+        "> [!note] Parent",
+        "> > [!question]",
+        "> > "
+    ]);
+    assert.deepEqual(editor.cursor, { line: 2, ch: 4 });
+});
+
+test("keeps plain enter inside a newly inserted nested callout header", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> outro"
+    ], 1, "", "> > [!question] ".length);
+
+    assert.equal(service.handleNestedCalloutEnter(editor), true);
+    assert.deepEqual(editor.lines, [
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> > ",
+        "> outro"
+    ]);
+    assert.deepEqual(editor.cursor, { line: 2, ch: 4 });
+});
+
+test("keeps plain enter inside a nested callout body", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> > body",
+        "> outro"
+    ], 2, "", "> > body".length);
+
+    assert.equal(service.handleNestedCalloutEnter(editor), true);
+    assert.deepEqual(editor.lines, [
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> > body",
+        "> > ",
+        "> outro"
+    ]);
+    assert.deepEqual(editor.cursor, { line: 3, ch: 4 });
+});
+
+test("does not override plain enter in a top-level callout", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "> [!note] Parent",
+        "> body"
+    ], 1, "", "> body".length);
+
+    assert.equal(service.handleNestedCalloutEnter(editor), false);
+    assert.deepEqual(editor.lines, [
+        "> [!note] Parent",
+        "> body"
+    ]);
+});
+
+test("moves an empty nested callout line back to the parent callout", () => {
+    const service = new EditorCalloutService();
+    const editor = createEditor([
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> > ",
+        "> outro"
+    ], 2, "", 4);
+
+    assert.equal(service.handleNestedCalloutEnter(editor), true);
+    assert.deepEqual(editor.lines, [
+        "> [!note] Parent",
+        "> > [!question] ",
+        "> ",
+        "> outro"
+    ]);
+    assert.deepEqual(editor.cursor, { line: 2, ch: 2 });
 });

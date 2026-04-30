@@ -34,6 +34,18 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                     });
             });
 
+        new Setting(containerEl)
+            .setName("Edited callout title color")
+            .setDesc("Applies to rendered callout title text when the visible title differs from the default label for that callout.")
+            .addColorPicker((colorPicker) => {
+                colorPicker
+                    .setValue(this.plugin.nonDefaultCalloutTitleColor())
+                    .onChange(async (value) => {
+                        this.plugin.settings.nonDefaultCalloutTitleColor = value;
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
     }
 }
 

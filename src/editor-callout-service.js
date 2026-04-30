@@ -47,6 +47,7 @@ class EditorCalloutService {
         const selection = editor.getSelection();
         if (selection && selection.length > 0) {
             editor.replaceSelection(this.wrapSelectionAsCallout(selection, calloutId, linePrefix));
+            this.focusEditor(editor);
             return;
         }
 
@@ -66,6 +67,7 @@ class EditorCalloutService {
             editor.setCursor(placeCursorOnNextLine
                 ? { line: cursor.line + 1, ch: linePrefix.length }
                 : { line: cursor.line, ch: headerLine.length });
+            this.focusEditor(editor);
             return;
         }
 
@@ -80,6 +82,7 @@ class EditorCalloutService {
         editor.setCursor(placeCursorOnNextLine
             ? { line: headerLineNumber + 1, ch: linePrefix.length }
             : { line: headerLineNumber, ch: headerLine.length });
+        this.focusEditor(editor);
     }
 
     renameCalloutType(editor, calloutId, existingContext = null) {
@@ -89,6 +92,7 @@ class EditorCalloutService {
         }
 
         editor.setLine(context.lineStart, this.replaceCalloutType(context.headerLine, calloutId));
+        this.focusEditor(editor);
     }
 
     clearCalloutFromEditor(editor, existingContext = null) {
@@ -98,6 +102,79 @@ class EditorCalloutService {
         }
 
         editor.setLine(context.lineStart, this.removeCalloutHeader(context.headerLine));
+        this.focusEditor(editor);
+    }
+
+    handleNestedCalloutEnter(editor) {
+        const action = this.getNestedCalloutEnterAction(editor);
+        if (!action) {
+            return false;
+        }
+
+        if (action.type === "replace-line") {
+            editor.setLine(action.line, action.text);
+            editor.setCursor(action.cursor);
+            this.focusEditor(editor);
+            return true;
+        }
+
+        editor.replaceRange(action.text, action.from);
+        editor.setCursor(action.cursor);
+        this.focusEditor(editor);
+        return true;
+    }
+
+    focusEditor(editor) {
+        if (editor && typeof editor.focus === "function") {
+            editor.focus();
+        }
+    }
+
+    getNestedCalloutEnterAction(editor) {
+        if (!editor) {
+            return null;
+        }
+
+        const selectedText = typeof editor.getSelection === "function"
+            ? editor.getSelection()
+            : "";
+        if (selectedText) {
+            return null;
+        }
+
+        const cursor = editor.getCursor("head");
+        const context = this.findCalloutContext(editor);
+        if (!cursor || !context || !this.isNestedCalloutContext(editor, context)) {
+            return null;
+        }
+
+        const contextDepth = this.getBlockquoteDepth(context.prefix);
+        const currentLine = editor.getLine(cursor.line);
+        if (this.getLineBlockquoteDepth(currentLine) < contextDepth) {
+            return null;
+        }
+
+        const continuationPrefix = this.getBlockquotePrefix(context.headerLine);
+        if (this.isEmptyBlockquoteLineAtPrefix(currentLine, continuationPrefix)) {
+            const parentPrefix = this.getParentCalloutPrefix(editor, context);
+            if (!parentPrefix) {
+                return null;
+            }
+
+            return {
+                type: "replace-line",
+                line: cursor.line,
+                text: parentPrefix,
+                cursor: { line: cursor.line, ch: parentPrefix.length }
+            };
+        }
+
+        return {
+            type: "insert",
+            text: `\n${continuationPrefix}`,
+            from: cursor,
+            cursor: { line: cursor.line + 1, ch: continuationPrefix.length }
+        };
     }
 
     isCalloutHeaderLine(line) {
@@ -115,6 +192,62 @@ class EditorCalloutService {
         }
 
         return match[1].replace(/\s*$/, " ");
+    }
+
+    getLineBlockquoteDepth(line) {
+        return this.getBlockquoteDepth(this.getBlockquotePrefix(line));
+    }
+
+    getBlockquoteDepth(prefix) {
+        const markers = String(prefix || "").match(/>/g);
+        return markers ? markers.length : 0;
+    }
+
+    isNestedCalloutContext(editor, context) {
+        const contextDepth = this.getBlockquoteDepth(context.prefix);
+        if (contextDepth <= 1) {
+            return false;
+        }
+
+        for (let lineNumber = context.lineStart - 1; lineNumber >= 0; lineNumber -= 1) {
+            const line = editor.getLine(lineNumber);
+            if (!this.isBlockquoteLine(line)) {
+                return false;
+            }
+
+            const parsedHeader = this.parseCalloutHeaderLine(line);
+            if (parsedHeader && this.getBlockquoteDepth(parsedHeader.prefix) < contextDepth) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    getParentCalloutPrefix(editor, context) {
+        const contextDepth = this.getBlockquoteDepth(context.prefix);
+        for (let lineNumber = context.lineStart - 1; lineNumber >= 0; lineNumber -= 1) {
+            const line = editor.getLine(lineNumber);
+            if (!this.isBlockquoteLine(line)) {
+                return "";
+            }
+
+            const parsedHeader = this.parseCalloutHeaderLine(line);
+            if (parsedHeader && this.getBlockquoteDepth(parsedHeader.prefix) < contextDepth) {
+                return this.getBlockquotePrefix(line);
+            }
+        }
+
+        return "";
+    }
+
+    isEmptyBlockquoteLineAtPrefix(line, prefix) {
+        if (this.getLineBlockquoteDepth(line) !== this.getBlockquoteDepth(prefix)) {
+            return false;
+        }
+
+        const linePrefix = this.getBlockquotePrefix(line);
+        return line.slice(linePrefix.length).trim().length === 0;
     }
 
     parseCalloutHeaderLine(line) {
@@ -185,7 +318,7 @@ class EditorCalloutService {
         const currentPrefix = this.getBlockquotePrefix(currentLine);
         const currentLineRemainder = currentLine.slice(currentPrefix.length);
         if (currentLineRemainder.length === 0) {
-            return linePrefix.trimEnd();
+            return linePrefix;
         }
 
         return `${linePrefix}${currentLineRemainder}`;

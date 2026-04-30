@@ -210,6 +210,16 @@
     box-shadow: inset 0 0 0 1px color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 40%, transparent);
 }
 
+.callout.custom-callout-has-edited-title {
+    --callout-title-color: var(--custom-callout-nondefault-title-color, #000000);
+}
+
+.callout .callout-icon .svg-icon,
+.callout .callout-title .callout-icon svg {
+    width: 1.2em;
+    height: 1.2em;
+}
+
 .custom-callout-picker-modal .modal {
     width: min(var(--custom-callout-modal-width, 42rem), calc(100vw - 1rem));
     max-width: min(var(--custom-callout-modal-width, 42rem), calc(100vw - 1rem));

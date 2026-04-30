@@ -270,6 +270,7 @@ class CalloutPickerModal extends Modal {
             if (event.key === "Enter") {
                 if (selectedItemNode) {
                     event.preventDefault();
+                    event.stopPropagation();
                     this.runItemAction(selectedItemNode, event.altKey === true);
                 }
                 return;
@@ -313,8 +314,8 @@ class CalloutPickerModal extends Modal {
         }
 
         this.itemNodeActions.set(itemNode, (useAlternateInsertionMode) => {
-            this.onChoose(option, { useAlternateInsertionMode });
             this.close();
+            this.onChoose(option, { useAlternateInsertionMode });
         });
 
         itemNode.addEventListener("click", (event) => {
@@ -337,10 +338,10 @@ class CalloutPickerModal extends Modal {
         appearanceEl.createDiv({ cls: "menu-item-title", text: "None" });
 
         this.itemNodeActions.set(itemNode, () => {
+            this.close();
             if (typeof this.onClear === "function") {
                 this.onClear();
             }
-            this.close();
         });
 
         itemNode.addEventListener("click", () => {

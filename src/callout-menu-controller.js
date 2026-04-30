@@ -1,5 +1,8 @@
 const { CalloutPickerModal } = require("./callout-picker-modal");
-const { resolvePlaceCursorOnNextLine } = require("./insertion-mode");
+const {
+    resolveDefaultPlaceCursorOnNextLine,
+    resolvePlaceCursorOnNextLine
+} = require("./insertion-mode");
 const { normalizeSearchText, getBestFuzzyScore } = require("./search-utils");
 
 class CalloutMenuController {
@@ -76,9 +79,10 @@ class CalloutMenuController {
             activeType: "",
             includeUtility: false,
             onChoose: (option, chooseOptions = {}) => {
+                const defaultPlaceCursorOnNextLine = this.getDefaultPlaceCursorOnNextLine(editor);
                 this.editorService.applyCalloutChoice(editor, option.id, {
                     placeCursorOnNextLine: resolvePlaceCursorOnNextLine(
-                        this.placeCursorOnNextLineAfterInsert(),
+                        defaultPlaceCursorOnNextLine,
                         chooseOptions.useAlternateInsertionMode === true
                     )
                 });
@@ -120,6 +124,16 @@ class CalloutMenuController {
 
     isOptionActive(option, activeType) {
         return this.registry.isOptionActive(option, activeType);
+    }
+
+    getDefaultPlaceCursorOnNextLine(editor) {
+        const context = this.editorService.findCalloutContext(editor);
+        const hasSelection = editor.getSelection().length > 0;
+        return resolveDefaultPlaceCursorOnNextLine(
+            this.placeCursorOnNextLineAfterInsert(),
+            context !== null,
+            hasSelection
+        );
     }
 
     buildSearchText(option) {
