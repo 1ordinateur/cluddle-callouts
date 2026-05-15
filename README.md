@@ -41,6 +41,11 @@ Development installs from a local clone still work as usual, but GitHub releases
 
 If your cursor is already inside a callout, `Open callout picker` inserts a nested callout instead of changing the current header. Use `Rename current callout type` if you want to retag the current callout itself.
 
+The picker supports keyboard workflows:
+
+- Bind `Open callout picker`, `Open callout picker (alternate insertion mode)`, or `Rename current callout type` in Obsidian Hotkeys
+- Press `Alt+Enter` inside the picker to use the opposite cursor-placement behavior for one insertion
+
 ## Custom Callouts
 
 The plugin reads enabled CSS snippets from your vault's Obsidian config and looks for `.callout[data-callout="..."]` definitions. That means custom callouts can show up in the picker automatically without requiring a separate plugin-specific registry.
