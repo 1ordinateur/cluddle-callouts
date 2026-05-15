@@ -53,9 +53,12 @@ class CalloutPickerModal extends Modal {
         let itemIndex = 0;
         const columnBlocks = [];
         const rowEntries = [];
+        const maxRowsPerColumn = typeof this.controller.getMaxRowsPerColumn === "function"
+            ? this.controller.getMaxRowsPerColumn()
+            : DEFAULT_SETTINGS.maxRowsPerColumn;
         for (const row of buildPickerRows(
             this.options,
-            this.controller.getMaxRowsPerColumn(),
+            maxRowsPerColumn,
             DEFAULT_SETTINGS.maxGroupColumns,
             this.includeUtility
         )) {

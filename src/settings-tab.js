@@ -1,4 +1,6 @@
 const { PluginSettingTab, Setting } = require("obsidian");
+const { DEFAULT_SETTINGS } = require("./constants");
+const { clampRowsPerColumn } = require("./layout-settings");
 
 class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
@@ -30,6 +32,22 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
                     .setValue(this.plugin.placeCursorOnNextLineAfterInsert())
                     .onChange(async (value) => {
                         this.plugin.settings.placeCursorOnNextLineAfterInsert = value;
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
+        new Setting(containerEl)
+            .setName("Max callouts per column")
+            .setDesc("Controls how many callout options appear before the picker spills into another column.")
+            .addText((text) => {
+                text
+                    .setPlaceholder(String(DEFAULT_SETTINGS.maxRowsPerColumn))
+                    .setValue(String(this.plugin.getMaxRowsPerColumn()))
+                    .onChange(async (value) => {
+                        this.plugin.settings.maxRowsPerColumn = clampRowsPerColumn(
+                            value,
+                            DEFAULT_SETTINGS.maxRowsPerColumn
+                        );
                         await this.plugin.savePluginSettings();
                     });
             });

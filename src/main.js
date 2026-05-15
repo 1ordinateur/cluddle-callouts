@@ -4,6 +4,7 @@ const { CalloutRegistry } = require("./callout-registry");
 const { EditorCalloutService } = require("./editor-callout-service");
 const { CalloutMenuController } = require("./callout-menu-controller");
 const { extractCalloutId, hasNonDefaultCalloutTitle } = require("./callout-title-style");
+const { clampRowsPerColumn } = require("./layout-settings");
 const { CustomCalloutContextMenuSettingTab } = require("./settings-tab");
 
 module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
@@ -18,6 +19,7 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             app: this.app,
             registry: this.registry,
             editorService: this.editorService,
+            getMaxRowsPerColumn: () => this.getMaxRowsPerColumn(),
             preferCustomInSearch: () => this.preferCustomInSearch(),
             placeCursorOnNextLineAfterInsert: () => this.placeCursorOnNextLineAfterInsert()
         });
@@ -41,6 +43,16 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             name: "Open callout picker",
             editorCallback: (editor) => {
                 this.menuController.openCalloutPicker(editor);
+            }
+        });
+
+        this.addCommand({
+            id: "open-callout-picker-alternate-insertion-mode",
+            name: "Open callout picker (alternate insertion mode)",
+            editorCallback: (editor) => {
+                this.menuController.openCalloutPicker(editor, {
+                    useAlternateInsertionMode: true
+                });
             }
         });
 
@@ -72,6 +84,10 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
 
     preferCustomInSearch() {
         return this.settings.preferCustomInSearch !== false;
+    }
+
+    getMaxRowsPerColumn() {
+        return clampRowsPerColumn(this.settings.maxRowsPerColumn, DEFAULT_SETTINGS.maxRowsPerColumn);
     }
 
     placeCursorOnNextLineAfterInsert() {

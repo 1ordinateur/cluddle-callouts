@@ -10,6 +10,7 @@ class CalloutMenuController {
         this.app = options.app;
         this.registry = options.registry;
         this.editorService = options.editorService;
+        this.getMaxRowsPerColumn = options.getMaxRowsPerColumn;
         this.preferCustomInSearch = options.preferCustomInSearch;
         this.placeCursorOnNextLineAfterInsert = options.placeCursorOnNextLineAfterInsert;
     }
@@ -67,7 +68,7 @@ class CalloutMenuController {
         });
     }
 
-    openCalloutPicker(editor) {
+    openCalloutPicker(editor, pickerOptions = {}) {
         const options = this.registry.getMenuOptions();
         if (options.length === 0) {
             return;
@@ -80,10 +81,12 @@ class CalloutMenuController {
             includeUtility: false,
             onChoose: (option, chooseOptions = {}) => {
                 const defaultPlaceCursorOnNextLine = this.getDefaultPlaceCursorOnNextLine(editor);
+                const useAlternateInsertionMode = pickerOptions.useAlternateInsertionMode === true
+                    || chooseOptions.useAlternateInsertionMode === true;
                 this.editorService.applyCalloutChoice(editor, option.id, {
                     placeCursorOnNextLine: resolvePlaceCursorOnNextLine(
                         defaultPlaceCursorOnNextLine,
-                        chooseOptions.useAlternateInsertionMode === true
+                        useAlternateInsertionMode
                     )
                 });
             }
