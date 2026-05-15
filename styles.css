@@ -201,6 +201,17 @@
     --callout-title-color: var(--custom-callout-nondefault-title-color, #000000);
 }
 
+.custom-callout-bundled-cluddle-enabled .callout[data-callout="cluddle"] {
+    --callout-color: 111, 174, 219;
+    --callout-icon: lucide-cloud;
+    background-color: #f4f6df;
+    border-color: rgba(111, 174, 219, 0.34);
+}
+
+.custom-callout-bundled-cluddle-enabled .callout[data-callout="cluddle"] .callout-title {
+    color: rgb(111, 174, 219);
+}
+
 .callout .callout-icon .svg-icon,
 .callout .callout-title .callout-icon svg {
     width: 1.2em;

@@ -1,7 +1,17 @@
-/* Custom medical callouts for Obsidian.
- * Everything is flattened into a single picker group: medical.
+/* Example custom callouts for Obsidian.
+ * The bundled Cluddle-style callout uses the default picker group.
+ * The medical callouts are flattened into a single picker group: medical.
  * Existing aliases are preserved so older notes still render consistently.
  */
+
+.callout[data-callout="cluddle"] {
+    --callout-color: 111, 174, 219;
+    --callout-icon: lucide-cloud;
+    --callout-concept: default;
+    --callout-groups: default;
+    --callout-group-default: cluddle;
+    background-color: #f4f6df;
+}
 
 .callout[data-callout="indicated"],
 .callout[data-callout="indi"] {

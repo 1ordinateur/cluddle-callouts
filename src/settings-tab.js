@@ -53,6 +53,18 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
             });
 
         new Setting(containerEl)
+            .setName("Show bundled Cluddle callout")
+            .setDesc("Adds the default Cluddle callout with a cloud icon and matching colors.")
+            .addToggle((toggle) => {
+                toggle
+                    .setValue(this.plugin.showBundledCluddleCallout())
+                    .onChange(async (value) => {
+                        this.plugin.settings.showBundledCluddleCallout = value;
+                        await this.plugin.savePluginSettings();
+                    });
+            });
+
+        new Setting(containerEl)
             .setName("Edited callout title color")
             .setDesc("Applies to rendered callout title text when the visible title differs from the default label for that callout.")
             .addColorPicker((colorPicker) => {

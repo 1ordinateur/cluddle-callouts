@@ -18,6 +18,15 @@ const BUILTIN_CALLOUTS = [
 
 const DEFAULT_CALLOUT_ICON = "message-square";
 
+const BUNDLED_CALLOUTS = [
+    {
+        id: "cluddle",
+        group: "default",
+        concept: "default",
+        icon: "cloud"
+    }
+];
+
 const BUILTIN_CALLOUT_ICONS = {
     note: "pencil",
     abstract: "clipboard-list",
@@ -43,6 +52,7 @@ const DEFAULT_SETTINGS = {
     modalHeightVh: 82,
     preferCustomInSearch: true,
     placeCursorOnNextLineAfterInsert: false,
+    showBundledCluddleCallout: true,
     nonDefaultCalloutTitleColor: "#000000"
 };
 
@@ -51,6 +61,7 @@ const GROUP_PROPERTY_PREFIX = "callout-group-";
 module.exports = {
     BUILTIN_CALLOUTS,
     BUILTIN_CALLOUT_ICONS,
+    BUNDLED_CALLOUTS,
     DEFAULT_CALLOUT_ICON,
     DEFAULT_SETTINGS,
     GROUP_PROPERTY_PREFIX

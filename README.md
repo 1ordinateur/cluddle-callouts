@@ -2,7 +2,7 @@
 
 Cluddle Callouts is an Obsidian plugin that makes callouts easier to insert, switch, and discover while editing notes.
 
-It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from anywhere in Obsidian. The picker includes Obsidian's built-in callouts and also detects custom callouts defined by your enabled CSS snippets.
+It adds a searchable callout picker to the editor right-click menu and provides a command to open the same picker from anywhere in Obsidian. The picker includes Obsidian's built-in callouts, a bundled `cluddle` callout, and custom callouts defined by your enabled CSS snippets.
 
 If you use a lot of custom callouts, this plugin saves you from remembering callout ids or manually rewriting block syntax. You can search, preview, insert, replace, and remove callouts from one place while staying in the editor.
 
@@ -29,6 +29,7 @@ Development installs from a local clone still work as usual, but GitHub releases
 - Changes the type of an existing callout in place
 - Removes a callout from the current block
 - Lets you search across built-in and custom callouts from one picker
+- Includes a bundled `cluddle` callout in the `default` category
 - Prefers custom callouts in search results when that setting is enabled
 
 ## How To Use It
@@ -40,6 +41,8 @@ Development installs from a local clone still work as usual, but GitHub releases
 5. Press `Enter` to apply the selected result, or click an item directly.
 
 If your cursor is already inside a callout, `Open callout picker` inserts a nested callout instead of changing the current header. Use `Rename current callout type` if you want to retag the current callout itself.
+
+The release includes a bundled `cluddle` callout with a cloud icon. It appears under the `default` category and can be disabled in settings.
 
 The picker supports keyboard workflows:
 
@@ -60,6 +63,19 @@ The format it looks for is:
   --callout-concept: recognition;
   --callout-groups: medical;
   --callout-group-medical: primary-id alias-id;
+}
+```
+
+For example, the bundled Cluddle-style callout uses this shape:
+
+```css
+.callout[data-callout="cluddle"] {
+  --callout-color: 111, 174, 219;
+  --callout-icon: lucide-cloud;
+  --callout-concept: default;
+  --callout-groups: default;
+  --callout-group-default: cluddle;
+  background-color: #f4f6df;
 }
 ```
 
@@ -104,6 +120,7 @@ The plugin includes settings for:
 - Whether custom callouts should rank above built-in ones in search
 - Whether the default insert behavior should place the cursor on the next content line instead of the header line
 - The maximum number of callouts shown in a picker column before spilling into another column
+- Whether the bundled `cluddle` callout should appear
 - The text color used for rendered callout titles after you edit the title away from the default callout label
 
 Press `Alt+Enter` in the picker to use the opposite cursor-placement behavior from that default insert setting for a single insertion.

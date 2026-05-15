@@ -13,7 +13,9 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
         this.calloutTitleObserver = null;
         this.calloutTitleRefreshFrame = 0;
 
-        this.registry = new CalloutRegistry(this.app);
+        this.registry = new CalloutRegistry(this.app, {
+            showBundledCluddleCallout: () => this.showBundledCluddleCallout()
+        });
         this.editorService = new EditorCalloutService();
         this.menuController = new CalloutMenuController({
             app: this.app,
@@ -65,12 +67,14 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
         });
 
         this.addSettingTab(new CustomCalloutContextMenuSettingTab(this.app, this));
+        this.applyBundledCluddleCalloutSetting();
         this.applyConfiguredCalloutTitleColor();
         this.startCalloutTitleObserver();
     }
 
     onunload() {
         this.stopCalloutTitleObserver();
+        this.clearBundledCluddleCalloutSetting();
         this.clearConfiguredCalloutTitleColor();
         this.menuController?.unload();
         this.registry?.unload();
@@ -78,6 +82,7 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
 
     async savePluginSettings() {
         await this.saveData(this.settings);
+        this.applyBundledCluddleCalloutSetting();
         this.applyConfiguredCalloutTitleColor();
         this.scheduleRefreshRenderedCalloutTitles();
     }
@@ -92,6 +97,10 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
 
     placeCursorOnNextLineAfterInsert() {
         return this.settings.placeCursorOnNextLineAfterInsert === true;
+    }
+
+    showBundledCluddleCallout() {
+        return this.settings.showBundledCluddleCallout !== false;
     }
 
     handleNestedCalloutEnterKey(event) {
@@ -252,6 +261,25 @@ module.exports = class CustomCalloutContextMenuPlugin extends Plugin {
             "--custom-callout-nondefault-title-color",
             this.nonDefaultCalloutTitleColor()
         );
+    }
+
+    applyBundledCluddleCalloutSetting() {
+        if (typeof document === "undefined" || !document.documentElement) {
+            return;
+        }
+
+        document.documentElement.classList.toggle(
+            "custom-callout-bundled-cluddle-enabled",
+            this.showBundledCluddleCallout()
+        );
+    }
+
+    clearBundledCluddleCalloutSetting() {
+        if (typeof document === "undefined" || !document.documentElement) {
+            return;
+        }
+
+        document.documentElement.classList.remove("custom-callout-bundled-cluddle-enabled");
     }
 
     clearConfiguredCalloutTitleColor() {

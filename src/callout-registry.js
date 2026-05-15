@@ -1,4 +1,5 @@
 const {
+    BUNDLED_CALLOUTS,
     BUILTIN_CALLOUTS,
     BUILTIN_CALLOUT_ICONS,
     DEFAULT_CALLOUT_ICON,
@@ -13,8 +14,9 @@ try {
 }
 
 class CalloutRegistry {
-    constructor(app) {
+    constructor(app, options = {}) {
         this.app = app;
+        this.showBundledCluddleCallout = options.showBundledCluddleCallout || (() => true);
         this.customCallouts = [];
         this.aliasToPrimary = new Map();
     }
@@ -97,6 +99,22 @@ class CalloutRegistry {
             }
         }
 
+        if (this.showBundledCluddleCallout()) {
+            const customIds = new Set(this.customCallouts.map((callout) => callout.id));
+            for (const bundledCallout of BUNDLED_CALLOUTS) {
+                if (customIds.has(bundledCallout.id)) {
+                    continue;
+                }
+
+                const option = this.buildBundledMenuOption(bundledCallout);
+                if (!option || seen.has(option.key)) {
+                    continue;
+                }
+                seen.add(option.key);
+                options.push(option);
+            }
+        }
+
         for (const builtinId of BUILTIN_CALLOUTS) {
             const option = this.buildMenuOptions(builtinId, false)[0];
             if (!option || seen.has(option.key)) {
@@ -107,6 +125,21 @@ class CalloutRegistry {
         }
 
         return options;
+    }
+
+    buildBundledMenuOption(callout) {
+        return {
+            key: `bundled:${callout.id}`,
+            id: callout.id,
+            group: callout.group,
+            isBundled: true,
+            isCustom: false,
+            aliases: [callout.id],
+            groupAliases: [callout.id],
+            concept: callout.concept,
+            icon: callout.icon,
+            appearanceId: callout.id
+        };
     }
 
     buildMenuOptions(id, isCustom) {

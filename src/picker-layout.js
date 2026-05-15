@@ -7,6 +7,11 @@ function getSectionDescriptor(option) {
         return { key: "utility", label: "utility" };
     }
 
+    if (option.isBundled) {
+        const groupName = option.group || "default";
+        return { key: `bundled:${groupName}`, label: groupName };
+    }
+
     if (option.isCustom) {
         const groupName = option.group || "custom";
         return { key: `custom:${groupName}`, label: groupName };

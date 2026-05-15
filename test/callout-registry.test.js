@@ -60,3 +60,46 @@ test("uses built-in and fallback callout icons", () => {
     assert.equal(registry.buildMenuOptions("warning", false)[0].icon, "triangle-alert");
     assert.equal(registry.buildMenuOptions("unknown", false)[0].icon, "message-square");
 });
+
+test("adds bundled Cluddle callout under the default group", () => {
+    const registry = new CalloutRegistry({}, {
+        showBundledCluddleCallout: () => true
+    });
+
+    const option = registry.getMenuOptions().find((menuOption) => menuOption.id === "cluddle");
+
+    assert.equal(option.key, "bundled:cluddle");
+    assert.equal(option.group, "default");
+    assert.equal(option.icon, "cloud");
+    assert.equal(option.isBundled, true);
+    assert.equal(option.isCustom, false);
+});
+
+test("omits bundled Cluddle callout when disabled", () => {
+    const registry = new CalloutRegistry({}, {
+        showBundledCluddleCallout: () => false
+    });
+
+    assert.equal(registry.getMenuOptions().some((option) => option.id === "cluddle"), false);
+});
+
+test("prefers user-defined Cluddle callout over bundled Cluddle", () => {
+    const registry = new CalloutRegistry({}, {
+        showBundledCluddleCallout: () => true
+    });
+    registry.customCallouts = [{
+        id: "cluddle",
+        aliases: [],
+        concept: "user cluddle",
+        icon: "star",
+        groups: [
+            { name: "custom", aliases: ["cluddle"] }
+        ]
+    }];
+
+    const cluddleOptions = registry.getMenuOptions().filter((option) => option.id === "cluddle");
+
+    assert.equal(cluddleOptions.length, 1);
+    assert.equal(cluddleOptions[0].key, "custom:cluddle:custom");
+    assert.equal(cluddleOptions[0].icon, "star");
+});
