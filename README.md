@@ -62,10 +62,10 @@ The plugin currently uses these properties:
 
 - `data-callout="..."` selectors to collect the primary id and aliases
 - `--callout-color` to color the picker preview
+- `--callout-icon` to show a Lucide icon in the picker preview and rendered Obsidian callout
 - `--callout-groups` to decide which group or groups the callout belongs to
 - `--callout-group-<group-name>` to define the label shown for that group entry and its aliases
 - `--callout-concept` as optional metadata for organizing related callouts in your snippet
-- `--callout-icon` for the rendered Obsidian callout itself; the picker does not currently parse icons
 
 A complete real-world example is included in `docs/example-medical-callouts.css`.
 

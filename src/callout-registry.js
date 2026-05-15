@@ -1,4 +1,9 @@
-const { BUILTIN_CALLOUTS, GROUP_PROPERTY_PREFIX } = require("./constants");
+const {
+    BUILTIN_CALLOUTS,
+    BUILTIN_CALLOUT_ICONS,
+    DEFAULT_CALLOUT_ICON,
+    GROUP_PROPERTY_PREFIX
+} = require("./constants");
 
 let normalizeConfigPath = (value) => String(value || "").replace(/\\/g, "/");
 try {
@@ -57,6 +62,7 @@ class CalloutRegistry {
                     id: primaryId,
                     aliases: block.ids.slice(1),
                     concept: block.concept || primaryId,
+                    icon: block.icon,
                     groups: block.groups || [],
                     snippetId
                 });
@@ -115,6 +121,7 @@ class CalloutRegistry {
                 aliases: customCallout ? [customCallout.id, ...customCallout.aliases] : [],
                 groupAliases: [id, ...(customCallout ? customCallout.aliases : [])],
                 concept: customCallout ? customCallout.concept : id,
+                icon: customCallout ? customCallout.icon : this.getBuiltinIcon(id),
                 appearanceId: id
             }];
         }
@@ -129,9 +136,28 @@ class CalloutRegistry {
                 isCustom: true,
                 aliases: [customCallout.id, ...customCallout.aliases],
                 groupAliases: group.aliases,
-                concept: customCallout.concept
+                concept: customCallout.concept,
+                icon: customCallout.icon
             };
         });
+    }
+
+    getBuiltinIcon(id) {
+        return BUILTIN_CALLOUT_ICONS[id] || DEFAULT_CALLOUT_ICON;
+    }
+
+    normalizeIconName(value) {
+        const rawValue = String(value || "").trim();
+        if (!rawValue) {
+            return "";
+        }
+
+        const token = rawValue.split(/[\s,]+/)[0].trim();
+        if (!/^lucide-[a-z0-9-]+$/i.test(token)) {
+            return "";
+        }
+
+        return token.replace(/^lucide-/i, "").toLowerCase();
     }
 
     isOptionActive(option, activeType) {
@@ -162,6 +188,7 @@ class CalloutRegistry {
             blocks.push({
                 ids: selectors,
                 concept: metadata.concept,
+                icon: metadata.icon,
                 groups: metadata.groups,
                 snippetId
             });
@@ -180,6 +207,7 @@ class CalloutRegistry {
         }
 
         const concept = properties.get("callout-concept") || "";
+        const icon = this.normalizeIconName(properties.get("callout-icon") || "");
         const configuredGroups = this.parseMetadataList(properties.get("callout-groups") || "");
         const inferredGroups = Array.from(properties.keys())
             .filter((key) => key.startsWith(GROUP_PROPERTY_PREFIX))
@@ -199,7 +227,7 @@ class CalloutRegistry {
             aliases: this.parseMetadataList(properties.get(`${GROUP_PROPERTY_PREFIX}${groupName}`) || "")
         })).filter((group) => group.aliases.length > 0);
 
-        return { concept, groups };
+        return { concept, icon, groups };
     }
 
     parseMetadataValue(value) {

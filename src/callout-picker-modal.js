@@ -1,5 +1,5 @@
 const { Modal, setIcon } = require("obsidian");
-const { DEFAULT_SETTINGS } = require("./constants");
+const { DEFAULT_CALLOUT_ICON, DEFAULT_SETTINGS } = require("./constants");
 const { movePickerSelection } = require("./navigation-utils");
 const { buildPickerRows } = require("./picker-layout");
 
@@ -26,6 +26,13 @@ class CalloutPickerModal extends Modal {
         }
     }
 
+    setCalloutIcon(iconEl, iconName) {
+        setIcon(iconEl, iconName || DEFAULT_CALLOUT_ICON);
+        if (!iconEl.querySelector("svg") && iconName && iconName !== DEFAULT_CALLOUT_ICON) {
+            setIcon(iconEl, DEFAULT_CALLOUT_ICON);
+        }
+    }
+
     onOpen() {
         this.itemNodeActions = new WeakMap();
         this.modalEl.addClass("custom-callout-picker-modal");
@@ -48,7 +55,7 @@ class CalloutPickerModal extends Modal {
         const rowEntries = [];
         for (const row of buildPickerRows(
             this.options,
-            DEFAULT_SETTINGS.maxRowsPerColumn,
+            this.controller.getMaxRowsPerColumn(),
             DEFAULT_SETTINGS.maxGroupColumns,
             this.includeUtility
         )) {
@@ -302,7 +309,8 @@ class CalloutPickerModal extends Modal {
         const appearanceEl = itemNode.createDiv({ cls: "custom-callout-context-menu-appearance callout" });
         appearanceEl.setAttribute("data-callout", option.appearanceId || option.id);
 
-        appearanceEl.createDiv({ cls: "custom-callout-context-menu-swatch" });
+        const iconEl = appearanceEl.createDiv({ cls: "menu-item-icon custom-callout-context-menu-icon" });
+        this.setCalloutIcon(iconEl, option.icon);
         appearanceEl.createDiv({
             cls: "menu-item-title",
             text: this.controller.formatTitle(option.id)

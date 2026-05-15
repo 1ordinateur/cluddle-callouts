@@ -16,6 +16,26 @@ const BUILTIN_CALLOUTS = [
     "cite"
 ];
 
+const DEFAULT_CALLOUT_ICON = "message-square";
+
+const BUILTIN_CALLOUT_ICONS = {
+    note: "pencil",
+    abstract: "clipboard-list",
+    info: "info",
+    todo: "check-circle-2",
+    tip: "flame",
+    important: "flame",
+    success: "check",
+    question: "circle-help",
+    warning: "triangle-alert",
+    failure: "x",
+    danger: "zap",
+    bug: "bug",
+    example: "list",
+    quote: "quote",
+    cite: "quote"
+};
+
 const DEFAULT_SETTINGS = {
     maxRowsPerColumn: 8,
     maxGroupColumns: 3,
@@ -30,6 +50,8 @@ const GROUP_PROPERTY_PREFIX = "callout-group-";
 
 module.exports = {
     BUILTIN_CALLOUTS,
+    BUILTIN_CALLOUT_ICONS,
+    DEFAULT_CALLOUT_ICON,
     DEFAULT_SETTINGS,
     GROUP_PROPERTY_PREFIX
 };

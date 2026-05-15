@@ -142,19 +142,9 @@
 }
 
 .custom-callout-context-menu-item .menu-item-title,
-.custom-callout-context-menu-item .menu-item-icon,
-.custom-callout-context-menu-swatch {
+.custom-callout-context-menu-item .menu-item-icon {
     color: rgb(var(--custom-callout-context-color, 128, 128, 128));
     transition: color 120ms ease;
-}
-
-.custom-callout-context-menu-swatch {
-    display: block;
-    width: 0.7rem;
-    min-width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 999px;
-    background: rgb(var(--custom-callout-context-color, 128, 128, 128));
 }
 
 .custom-callout-context-menu-item .menu-item-icon {
@@ -167,6 +157,8 @@
 
 .custom-callout-context-menu-item .menu-item-icon svg {
     display: block;
+    width: 1em;
+    height: 1em;
 }
 
 .custom-callout-context-menu-item .menu-item-title {
@@ -196,13 +188,8 @@
 }
 
 .custom-callout-context-menu-item:hover .menu-item-title,
-.custom-callout-context-menu-item:hover .menu-item-icon,
-.custom-callout-context-menu-item:hover .custom-callout-context-menu-swatch {
+.custom-callout-context-menu-item:hover .menu-item-icon {
     color: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 82%, white);
-}
-
-.custom-callout-context-menu-item:hover .custom-callout-context-menu-swatch {
-    background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 82%, white);
 }
 
 .custom-callout-context-menu-item.is-search-top-result .custom-callout-context-menu-appearance {
