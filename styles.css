@@ -126,8 +126,12 @@
 }
 
 .custom-callout-context-menu-appearance {
-    all: unset;
     --custom-callout-context-color: var(--callout-color, 128, 128, 128);
+    margin: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
     display: flex;
     align-items: center;
     gap: 0.38rem;
@@ -141,18 +145,20 @@
     transition: background-color 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
-.custom-callout-context-menu-item .menu-item-title,
-.custom-callout-context-menu-item .menu-item-icon {
+.custom-callout-context-menu-item .menu-item-title {
     color: rgb(var(--custom-callout-context-color, 128, 128, 128));
     transition: color 120ms ease;
 }
 
 .custom-callout-context-menu-item .menu-item-icon {
+    color: rgb(var(--custom-callout-context-color, 128, 128, 128));
+    transition: color 120ms ease;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 1.15rem;
     min-width: 1.15rem;
+    opacity: 1;
 }
 
 .custom-callout-context-menu-item .menu-item-icon svg {
@@ -172,10 +178,6 @@
 
 .custom-callout-context-menu-item[data-callout-custom="true"] .menu-item-title {
     font-weight: 700;
-}
-
-.custom-callout-context-menu-item .menu-item-icon {
-    opacity: 1;
 }
 
 .custom-callout-context-menu-item.is-search-hidden {

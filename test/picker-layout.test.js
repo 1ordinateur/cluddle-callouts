@@ -39,8 +39,8 @@ test("utility section stays separate from metadata groups", () => {
 
 test("bundled callouts use their configured picker group", () => {
     assert.deepEqual(
-        getSectionDescriptor({ id: "cluddle", isBundled: true, group: "default" }),
-        { key: "bundled:default", label: "default" }
+        getSectionDescriptor({ id: "cluddle", isBundled: true, group: "builtin" }),
+        { key: "builtin", label: "builtin" }
     );
 });
 

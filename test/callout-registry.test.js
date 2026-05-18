@@ -61,7 +61,7 @@ test("uses built-in and fallback callout icons", () => {
     assert.equal(registry.buildMenuOptions("unknown", false)[0].icon, "message-square");
 });
 
-test("adds bundled Cluddle callout under the default group", () => {
+test("adds bundled Cluddle callout under the builtin group", () => {
     const registry = new CalloutRegistry({}, {
         showBundledCluddleCallout: () => true
     });
@@ -69,7 +69,7 @@ test("adds bundled Cluddle callout under the default group", () => {
     const option = registry.getMenuOptions().find((menuOption) => menuOption.id === "cluddle");
 
     assert.equal(option.key, "bundled:cluddle");
-    assert.equal(option.group, "default");
+    assert.equal(option.group, "builtin");
     assert.equal(option.icon, "cloud");
     assert.equal(option.isBundled, true);
     assert.equal(option.isCustom, false);

@@ -16,8 +16,8 @@ test("shows the bundled Cluddle callout by default", () => {
     assert.equal(DEFAULT_SETTINGS.showBundledCluddleCallout, true);
     assert.deepEqual(BUNDLED_CALLOUTS[0], {
         id: "cluddle",
-        group: "default",
-        concept: "default",
+        group: "builtin",
+        concept: "builtin",
         icon: "cloud"
     });
 });

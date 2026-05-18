@@ -8,7 +8,10 @@ function getSectionDescriptor(option) {
     }
 
     if (option.isBundled) {
-        const groupName = option.group || "default";
+        const groupName = option.group || "builtin";
+        if (groupName === "builtin") {
+            return { key: "builtin", label: "builtin" };
+        }
         return { key: `bundled:${groupName}`, label: groupName };
     }
 

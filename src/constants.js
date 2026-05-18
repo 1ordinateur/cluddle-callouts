@@ -21,8 +21,8 @@ const DEFAULT_CALLOUT_ICON = "message-square";
 const BUNDLED_CALLOUTS = [
     {
         id: "cluddle",
-        group: "default",
-        concept: "default",
+        group: "builtin",
+        concept: "builtin",
         icon: "cloud"
     }
 ];

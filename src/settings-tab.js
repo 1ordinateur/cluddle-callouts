@@ -54,7 +54,7 @@ class CustomCalloutContextMenuSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName("Show bundled Cluddle callout")
-            .setDesc("Adds the default Cluddle callout with a cloud icon and matching colors.")
+            .setDesc("Adds the bundled Cluddle callout to the built-in picker group with a cloud icon and matching colors.")
             .addToggle((toggle) => {
                 toggle
                     .setValue(this.plugin.showBundledCluddleCallout())

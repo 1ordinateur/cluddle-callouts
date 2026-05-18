@@ -29,7 +29,7 @@ Development installs from a local clone still work as usual, but GitHub releases
 - Changes the type of an existing callout in place
 - Removes a callout from the current block
 - Lets you search across built-in and custom callouts from one picker
-- Includes a bundled `cluddle` callout in the `default` category
+- Includes a bundled `cluddle` callout in the `builtin` category
 - Prefers custom callouts in search results when that setting is enabled
 
 ## How To Use It
@@ -42,7 +42,7 @@ Development installs from a local clone still work as usual, but GitHub releases
 
 If your cursor is already inside a callout, `Open callout picker` inserts a nested callout instead of changing the current header. Use `Rename current callout type` if you want to retag the current callout itself.
 
-The release includes a bundled `cluddle` callout with a cloud icon. It appears under the `default` category and can be disabled in settings.
+The release includes a bundled `cluddle` callout with a cloud icon. It appears under the existing `builtin` category and can be disabled in settings.
 
 The picker supports keyboard workflows:
 
@@ -72,9 +72,9 @@ For example, the bundled Cluddle-style callout uses this shape:
 .callout[data-callout="cluddle"] {
   --callout-color: 111, 174, 219;
   --callout-icon: lucide-cloud;
-  --callout-concept: default;
-  --callout-groups: default;
-  --callout-group-default: cluddle;
+  --callout-concept: builtin;
+  --callout-groups: builtin;
+  --callout-group-builtin: cluddle;
   background-color: #f4f6df;
 }
 ```
@@ -138,6 +138,7 @@ There are also commands you can bind in Obsidian Hotkeys:
 - No accounts, payments, ads, or telemetry
 - Reads `.obsidian/appearance.json` and enabled CSS snippet files from `.obsidian/snippets/` to discover custom callout definitions
 - Those files live in Obsidian's hidden config directory, so the plugin uses `Vault.configDir` plus narrow read-only adapter access for that discovery path
+- Does not scan arbitrary note content while discovering callouts
 - Stores only its own settings in Obsidian's plugin data store
 - Does not write to notes unless you choose a callout from the picker
 
@@ -160,9 +161,20 @@ npm run build
 
 That bundles the source tree into the shipped `main.js` at the repository root.
 
+## Release Process
+
+Releases are tag-driven through GitHub Actions. To publish a release:
+
+1. Update `manifest.json`, `package.json`, `package-lock.json`, and `versions.json` to the same version.
+2. Commit the version bump and source changes.
+3. Create and push a tag matching the version, such as `0.1.9`.
+
+The release workflow runs tests, rebuilds `main.js`, attests `manifest.json`, `main.js`, and `styles.css`, then publishes those three files as the GitHub release assets. Do not create Obsidian release assets manually unless you also recreate the same artifact attestations.
+
 ## Notes
 
 - Release assets for Obsidian should contain only `manifest.json`, `main.js`, and `styles.css`
+- GitHub releases should be created by the release workflow so Obsidian can see source-built, attested assets
 - The picker layout and size are static in CSS so the plugin does not inject layout styling from JavaScript
 - Hidden config-dir reads are isolated to a single helper because Obsidian does not expose enabled CSS snippets through the Vault API
 - Desktop only

@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "0.1.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to build, attest, and publish"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+concurrency:
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release metadata
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+
+          const tag = process.env.RELEASE_TAG;
+          const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+          const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+          const versions = JSON.parse(fs.readFileSync("versions.json", "utf8"));
+
+          if (!/^0\.1\.\d+$/.test(tag)) {
+            throw new Error(`Release tag ${tag} does not match 0.1.x`);
+          }
+
+          if (manifest.version !== tag || pkg.version !== tag) {
+            throw new Error(`Release tag ${tag} must match manifest.json and package.json versions`);
+          }
+
+          if (versions[tag] !== manifest.minAppVersion) {
+            throw new Error(`versions.json must map ${tag} to ${manifest.minAppVersion}`);
+          }
+          NODE
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify release assets
+        run: |
+          test -s manifest.json
+          test -s main.js
+          test -s styles.css
+
+      - name: Attest release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            ${{ github.workspace }}/main.js
+            ${{ github.workspace }}/manifest.json
+            ${{ github.workspace }}/styles.css
+
+      - name: Publish GitHub release
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "::error::Release $RELEASE_TAG already exists"
+            exit 1
+          fi
+
+          gh release create "$RELEASE_TAG" \
+            manifest.json \
+            main.js \
+            styles.css \
+            --verify-tag \
+            --title "$RELEASE_TAG" \
+            --generate-notes
