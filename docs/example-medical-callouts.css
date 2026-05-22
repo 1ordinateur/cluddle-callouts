@@ -26,7 +26,7 @@
 .callout[data-callout="trea"],
 .callout[data-callout="use"] {
     --callout-color: 34, 197, 94;
-    --callout-icon: lucide-stethoscope;
+    --callout-icon: lucide-pill;
     --callout-concept: treatment;
     --callout-groups: medical;
     --callout-group-medical: treatment trea use;
@@ -35,7 +35,7 @@
 .callout[data-callout="symptoms"],
 .callout[data-callout="symp"] {
     --callout-color: 124, 140, 32;
-    --callout-icon: lucide-stethoscope;
+    --callout-icon: lucide-thermometer;
     --callout-concept: recognition;
     --callout-groups: medical;
     --callout-group-medical: symptoms symp;
@@ -44,7 +44,7 @@
 .callout[data-callout="character"],
 .callout[data-callout="char"] {
     --callout-color: 124, 140, 32;
-    --callout-icon: lucide-stethoscope;
+    --callout-icon: lucide-book-open-text;
     --callout-concept: recognition;
     --callout-groups: medical;
     --callout-group-medical: character char;
@@ -60,17 +60,6 @@
     --callout-group-medical: mechanism mech role;
 }
 
-.callout[data-callout="effect"],
-.callout[data-callout="effe"],
-.callout[data-callout="consequences"],
-.callout[data-callout="cons"] {
-    --callout-color: 29, 78, 216;
-    --callout-icon: lucide-flask-conical;
-    --callout-concept: effect;
-    --callout-groups: medical;
-    --callout-group-medical: effect effe consequences cons;
-}
-
 .callout[data-callout="pathology"],
 .callout[data-callout="patho"],
 .callout[data-callout="pathogenesis"],
@@ -78,7 +67,7 @@
 .callout[data-callout="genesis"],
 .callout[data-callout="gene"] {
     --callout-color: 29, 78, 216;
-    --callout-icon: lucide-flask-conical;
+    --callout-icon: lucide-microscope;
     --callout-concept: pathology;
     --callout-groups: medical;
     --callout-group-medical: pathology patho pathogenesis path genesis gene;
@@ -160,19 +149,10 @@
     --callout-group-medical: contraindicated cont contra;
 }
 
-.callout[data-callout="checklist"],
-.callout[data-callout="chec"] {
-    --callout-color: 147, 51, 234;
-    --callout-icon: lucide-list-checks;
-    --callout-concept: checklist;
-    --callout-groups: medical;
-    --callout-group-medical: checklist chec;
-}
-
 .callout[data-callout="tests"],
 .callout[data-callout="test"] {
     --callout-color: 147, 51, 234;
-    --callout-icon: lucide-list-checks;
+    --callout-icon: lucide-test-tube;
     --callout-concept: tests;
     --callout-groups: medical;
     --callout-group-medical: tests test;
