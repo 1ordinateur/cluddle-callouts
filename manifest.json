@@ -1,8 +1,8 @@
 {
   "id": "cluddle-callouts",
   "name": "Cluddle Callouts",
-  "version": "0.1.10",
-  "minAppVersion": "1.6.0",
+  "version": "0.1.11",
+  "minAppVersion": "1.13.0",
   "description": "Adds CSS-defined custom callouts to the editor right-click menu and colors callout options.",
   "author": "1ordinateur",
   "isDesktopOnly": true

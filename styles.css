@@ -126,7 +126,7 @@
 }
 
 .custom-callout-context-menu-appearance {
-    --custom-callout-context-color: var(--callout-color, 128, 128, 128);
+    --custom-callout-context-color: var(--callout-color, rgb(128, 128, 128));
     margin: 0;
     border: 0;
     background: transparent;
@@ -146,12 +146,12 @@
 }
 
 .custom-callout-context-menu-item .menu-item-title {
-    color: rgb(var(--custom-callout-context-color, 128, 128, 128));
+    color: var(--custom-callout-context-color, rgb(128, 128, 128));
     transition: color 120ms ease;
 }
 
 .custom-callout-context-menu-item .menu-item-icon {
-    color: rgb(var(--custom-callout-context-color, 128, 128, 128));
+    color: var(--custom-callout-context-color, rgb(128, 128, 128));
     transition: color 120ms ease;
     display: flex;
     align-items: center;
@@ -185,18 +185,18 @@
 }
 
 .custom-callout-context-menu-item:hover .custom-callout-context-menu-appearance {
-    background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 12%, var(--background-primary));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 32%, transparent);
+    background: color-mix(in srgb, var(--custom-callout-context-color, rgb(128, 128, 128)) 12%, var(--background-primary));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--custom-callout-context-color, rgb(128, 128, 128)) 32%, transparent);
 }
 
 .custom-callout-context-menu-item:hover .menu-item-title,
 .custom-callout-context-menu-item:hover .menu-item-icon {
-    color: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 82%, white);
+    color: color-mix(in srgb, var(--custom-callout-context-color, rgb(128, 128, 128)) 82%, white);
 }
 
 .custom-callout-context-menu-item.is-search-top-result .custom-callout-context-menu-appearance {
-    background: color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 16%, var(--background-primary));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, rgb(var(--custom-callout-context-color, 128, 128, 128)) 40%, transparent);
+    background: color-mix(in srgb, var(--custom-callout-context-color, rgb(128, 128, 128)) 16%, var(--background-primary));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--custom-callout-context-color, rgb(128, 128, 128)) 40%, transparent);
 }
 
 .callout.custom-callout-has-edited-title {
@@ -204,7 +204,7 @@
 }
 
 .custom-callout-bundled-cluddle-enabled .callout[data-callout="cluddle"] {
-    --callout-color: 111, 174, 219;
+    --callout-color: rgb(111, 174, 219);
     --callout-icon: lucide-cloud;
     background-color: #f4f6df;
     border-color: rgba(111, 174, 219, 0.34);

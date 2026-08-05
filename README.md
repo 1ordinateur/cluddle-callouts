@@ -53,12 +53,14 @@ The picker supports keyboard workflows:
 
 The plugin reads enabled CSS snippets from your vault's Obsidian config and looks for `.callout[data-callout="..."]` definitions. That means custom callouts can show up in the picker automatically without requiring a separate plugin-specific registry.
 
+Obsidian 1.13 and later require `--callout-color` to be a complete CSS color such as `rgb(230, 126, 34)` or `#e67e22`, rather than a bare RGB triplet.
+
 The format it looks for is:
 
 ```css
 .callout[data-callout="primary-id"],
 .callout[data-callout="alias-id"] {
-  --callout-color: 230, 126, 34;
+  --callout-color: rgb(230, 126, 34);
   --callout-icon: lucide-stethoscope;
   --callout-concept: recognition;
   --callout-groups: medical;
@@ -70,7 +72,7 @@ For example, the bundled Cluddle-style callout uses this shape:
 
 ```css
 .callout[data-callout="cluddle"] {
-  --callout-color: 111, 174, 219;
+  --callout-color: rgb(111, 174, 219);
   --callout-icon: lucide-cloud;
   --callout-concept: builtin;
   --callout-groups: builtin;
@@ -95,7 +97,7 @@ Here is a small example of a CSS snippet entry that this plugin can process:
 ```css
 .callout[data-callout="indicated"],
 .callout[data-callout="recommended"] {
-  --callout-color: 230, 126, 34;
+  --callout-color: rgb(230, 126, 34);
   --callout-concept: drug-usage;
   --callout-groups: drug disease;
   --callout-group-drug: indicated;
